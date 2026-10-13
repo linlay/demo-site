@@ -52,7 +52,7 @@ export function useReportQuery(api: DemoApi) {
   useEffect(
     () =>
       realtime?.observe(observerId, {
-        resources: ['reports'],
+        resources: ['reports', 'business-analysis'],
         revision: appliedRevision.current,
         refresh: async () => {
           const next = inFlight.current

@@ -1,3 +1,4 @@
+import type { BusinessOperation } from './business';
 import type { ApiFailure, AwcpSettings, DemoSession, ReportFilter, ReportResult } from './types';
 
 export class ApiError extends Error {
@@ -72,6 +73,11 @@ export class DemoApi {
   report(filter: ReportFilter, signal?: AbortSignal): Promise<ReportResult> {
     if (this.blocked) return Promise.reject(new ApiError(409, { code: 'session.generation-conflict', message: '演示空间已变化，请先载入最新数据。' }));
     return this.request<ReportResult>('/reports/query', 'POST', filter, signal);
+  }
+
+  business<T>(operation: BusinessOperation, input: object, signal?: AbortSignal, validate = false): Promise<T> {
+    if (this.blocked) return Promise.reject(new ApiError(409, { code: 'session.generation-conflict', message: '演示空间已变化，请先载入最新数据。' }));
+    return this.request<T>(`/business/${operation}${validate ? '/validate' : ''}`, 'POST', { ...input, expectedGeneration: this.generation }, signal);
   }
 
   private async request<T>(path: string, method: 'GET' | 'POST', body?: unknown, signal?: AbortSignal, generation = this.generation): Promise<T> {

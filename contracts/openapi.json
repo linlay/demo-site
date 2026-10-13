@@ -3,7 +3,7 @@
   "info": {
     "title": "demo-site HTTP API",
     "version": "0.1.0",
-    "description": "Foundation phase. Business O/S command APIs are not yet migrated. AWCP protocol remains in the browser."
+    "description": "Go/SQLite session API with shared HTTP/MCP business services for O01, O08 and O09, plus live and historical analysis. Other O/S domains remain browser-only."
   },
   "paths": {
     "/healthz": {
@@ -412,6 +412,2765 @@
           }
         }
       }
+    },
+    "/api/v1/business/todos_query": {
+      "post": {
+        "operationId": "todos_query",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTodosQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessTasksPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/todos_query/validate": {
+      "post": {
+        "operationId": "todos_queryValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTodosQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/done_query": {
+      "post": {
+        "operationId": "done_query",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessDoneQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessTasksPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/done_query/validate": {
+      "post": {
+        "operationId": "done_queryValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessDoneQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approvals_query": {
+      "post": {
+        "operationId": "approvals_query",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalsQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessApprovalsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approvals_query/validate": {
+      "post": {
+        "operationId": "approvals_queryValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalsQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travels_query": {
+      "post": {
+        "operationId": "travels_query",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelsQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessTravelsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travels_query/validate": {
+      "post": {
+        "operationId": "travels_queryValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelsQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expenses_query": {
+      "post": {
+        "operationId": "expenses_query",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpensesQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessExpensesPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expenses_query/validate": {
+      "post": {
+        "operationId": "expenses_queryValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpensesQueryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/workbench_summary": {
+      "post": {
+        "operationId": "workbench_summary",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessWorkbenchSummaryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessWorkbenchSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/workbench_summary/validate": {
+      "post": {
+        "operationId": "workbench_summaryValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessWorkbenchSummaryInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_read": {
+      "post": {
+        "operationId": "approval_read",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalReadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessApprovalDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_read/validate": {
+      "post": {
+        "operationId": "approval_readValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalReadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_read": {
+      "post": {
+        "operationId": "travel_read",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelReadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessTravelDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_read/validate": {
+      "post": {
+        "operationId": "travel_readValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelReadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_read": {
+      "post": {
+        "operationId": "expense_read",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseReadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessExpenseDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_read/validate": {
+      "post": {
+        "operationId": "expense_readValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseReadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_materials_list": {
+      "post": {
+        "operationId": "approval_materials_list",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalMaterialsListInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "maxLength": 32
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 120
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 100
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_materials_list/validate": {
+      "post": {
+        "operationId": "approval_materials_listValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalMaterialsListInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_receipts_list": {
+      "post": {
+        "operationId": "travel_receipts_list",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelReceiptsListInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessAsset"
+                  },
+                  "minItems": 0,
+                  "maxItems": 100
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_receipts_list/validate": {
+      "post": {
+        "operationId": "travel_receipts_listValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelReceiptsListInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_submit": {
+      "post": {
+        "operationId": "approval_submit",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalSubmitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_submit/validate": {
+      "post": {
+        "operationId": "approval_submitValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalSubmitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_submit": {
+      "post": {
+        "operationId": "travel_submit",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelSubmitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_submit/validate": {
+      "post": {
+        "operationId": "travel_submitValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelSubmitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_draft_save": {
+      "post": {
+        "operationId": "travel_draft_save",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelDraftSaveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_draft_save/validate": {
+      "post": {
+        "operationId": "travel_draft_saveValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelDraftSaveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_receipt_register": {
+      "post": {
+        "operationId": "travel_receipt_register",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelReceiptRegisterInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_receipt_register/validate": {
+      "post": {
+        "operationId": "travel_receipt_registerValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelReceiptRegisterInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_check": {
+      "post": {
+        "operationId": "expense_check",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseCheckInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_check/validate": {
+      "post": {
+        "operationId": "expense_checkValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseCheckInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_correct": {
+      "post": {
+        "operationId": "expense_correct",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseCorrectInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_correct/validate": {
+      "post": {
+        "operationId": "expense_correctValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseCorrectInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_approve": {
+      "post": {
+        "operationId": "approval_approve",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalApproveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_approve/validate": {
+      "post": {
+        "operationId": "approval_approveValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalApproveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_return": {
+      "post": {
+        "operationId": "approval_return",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalReturnInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_return/validate": {
+      "post": {
+        "operationId": "approval_returnValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalReturnInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_withdraw": {
+      "post": {
+        "operationId": "approval_withdraw",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalWithdrawInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/approval_withdraw/validate": {
+      "post": {
+        "operationId": "approval_withdrawValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessApprovalWithdrawInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_approve": {
+      "post": {
+        "operationId": "travel_approve",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelApproveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_approve/validate": {
+      "post": {
+        "operationId": "travel_approveValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelApproveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_return": {
+      "post": {
+        "operationId": "travel_return",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelReturnInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_return/validate": {
+      "post": {
+        "operationId": "travel_returnValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelReturnInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_resubmit": {
+      "post": {
+        "operationId": "travel_resubmit",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelResubmitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/travel_resubmit/validate": {
+      "post": {
+        "operationId": "travel_resubmitValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTravelResubmitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_submit": {
+      "post": {
+        "operationId": "expense_submit",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseSubmitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_submit/validate": {
+      "post": {
+        "operationId": "expense_submitValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseSubmitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_approve": {
+      "post": {
+        "operationId": "expense_approve",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseApproveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_approve/validate": {
+      "post": {
+        "operationId": "expense_approveValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseApproveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_return": {
+      "post": {
+        "operationId": "expense_return",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseReturnInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/expense_return/validate": {
+      "post": {
+        "operationId": "expense_returnValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessExpenseReturnInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/todo_complete": {
+      "post": {
+        "operationId": "todo_complete",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTodoCompleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/todo_complete/validate": {
+      "post": {
+        "operationId": "todo_completeValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTodoCompleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/todo_summarize": {
+      "post": {
+        "operationId": "todo_summarize",
+        "description": "Shared Go service. Actor IDs select fictional roles within the cookie-bound workspace. All writes check roles, generation, business version and idempotency; state, tasks, history and events commit in one SQLite transaction.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTodoSummarizeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "maxLength": 10
+                    },
+                    "actorId": {
+                      "type": "string",
+                      "maxLength": 32
+                    },
+                    "done": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "pending": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "overdue": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "todoId": {
+                            "type": "string",
+                            "maxLength": 64
+                          },
+                          "sourceId": {
+                            "type": "string",
+                            "maxLength": 64
+                          },
+                          "category": {
+                            "type": "string",
+                            "maxLength": 32
+                          },
+                          "dueAt": {
+                            "type": "string",
+                            "maxLength": 40
+                          },
+                          "completedAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "todoId",
+                          "sourceId",
+                          "category",
+                          "dueAt",
+                          "completedAt"
+                        ]
+                      },
+                      "minItems": 0,
+                      "maxItems": 100
+                    }
+                  },
+                  "required": [
+                    "date",
+                    "actorId",
+                    "done",
+                    "pending",
+                    "overdue",
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fields or business rules"
+          },
+          "401": {
+            "description": "Expired browser session"
+          },
+          "403": {
+            "description": "Actor or origin forbidden"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale generation/version or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/business/todo_summarize/validate": {
+      "post": {
+        "operationId": "todo_summarizeValidate",
+        "description": "Read-only dynamic validation: runs the same rules in a transaction that is always rolled back, without publishing events or consuming an idempotency key.",
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessTodoSummarizeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid without committing any business state"
+          },
+          "400": {
+            "description": "Field errors"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -596,6 +3355,7 @@
             "type": "string",
             "enum": [
               "",
+              "draft",
               "pending",
               "approved",
               "returned",
@@ -623,6 +3383,23 @@
             "minimum": 1,
             "maximum": 100,
             "default": 20
+          },
+          "dataSource": {
+            "type": "string",
+            "enum": [
+              "business",
+              "historical-fixtures"
+            ],
+            "default": "historical-fixtures"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "",
+              "approval",
+              "travel",
+              "expense"
+            ]
           }
         },
         "required": []
@@ -910,6 +3687,2006 @@
             "minimum": 1
           }
         }
+      },
+      "BusinessResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "businessVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "taskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "businessVersion",
+          "taskId",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessTask": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "assigneeId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "approval",
+              "travel",
+              "expense"
+            ]
+          },
+          "sourceId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "scenarioId": {
+            "type": "string",
+            "maxLength": 3
+          },
+          "dueAt": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "done"
+            ]
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "completedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceStatus": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "sourceVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "assigneeId",
+          "sourceType",
+          "sourceId",
+          "scenarioId",
+          "dueAt",
+          "status",
+          "completedAt",
+          "completedBy",
+          "outcome",
+          "sourceStatus",
+          "sourceVersion"
+        ]
+      },
+      "BusinessHistory": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "at": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "fromStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "toStatus": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "businessVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "action",
+          "actorId",
+          "at",
+          "fromStatus",
+          "toStatus",
+          "businessVersion",
+          "note"
+        ]
+      },
+      "BusinessAsset": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "ownerId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "filename"
+        ]
+      },
+      "ApprovalDecision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "taskId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "businessVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "decidedAt": {
+            "type": "string",
+            "maxLength": 40
+          }
+        },
+        "required": [
+          "id",
+          "taskId",
+          "action",
+          "actorId",
+          "opinion",
+          "businessVersion",
+          "decidedAt"
+        ]
+      },
+      "BusinessApproval": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "applicantId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "departmentId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "reviewerId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "materialIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "minItems": 1,
+            "maxItems": 10
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "businessVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "currentTaskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "maxLength": 40
+          }
+        },
+        "required": [
+          "id",
+          "applicantId",
+          "departmentId",
+          "reviewerId",
+          "title",
+          "description",
+          "materialIds",
+          "status",
+          "businessVersion",
+          "currentTaskId",
+          "createdAt"
+        ]
+      },
+      "BusinessTravel": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "applicantId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "departmentId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "reviewerId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "businessVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "currentTaskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "origin": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "destination": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "startAt": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "endAt": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "travelerIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "minItems": 1,
+            "maxItems": 10
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "applicantId",
+          "departmentId",
+          "reviewerId",
+          "status",
+          "businessVersion",
+          "amountCents",
+          "currentTaskId",
+          "createdAt",
+          "origin",
+          "destination",
+          "startAt",
+          "endAt",
+          "travelerIds"
+        ]
+      },
+      "BusinessExpenseReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "invoiceNo": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "assetId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "invoiceNo",
+          "assetId",
+          "amountCents"
+        ]
+      },
+      "BusinessExpenseLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "transport",
+              "hotel",
+              "meal",
+              "other"
+            ]
+          },
+          "invoiceNo": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "category",
+          "invoiceNo",
+          "amountCents"
+        ]
+      },
+      "BusinessExpense": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "applicantId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "departmentId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "reviewerId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "businessVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "currentTaskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "travelFormId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "checkedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessExpenseReceipt"
+            },
+            "minItems": 1,
+            "maxItems": 20
+          },
+          "lineItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessExpenseLine"
+            },
+            "minItems": 1,
+            "maxItems": 40
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "applicantId",
+          "departmentId",
+          "reviewerId",
+          "status",
+          "businessVersion",
+          "amountCents",
+          "currentTaskId",
+          "createdAt",
+          "travelFormId",
+          "checkedVersion",
+          "receipts",
+          "lineItems"
+        ]
+      },
+      "BusinessTasksPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessTask"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessApprovalsPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessApproval"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessTravelsPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessTravel"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessExpensesPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessExpense"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessApprovalDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/BusinessApproval"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessTask"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessHistory"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "decisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApprovalDecision"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "item",
+          "tasks",
+          "history",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessTravelDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/BusinessTravel"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessTask"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessHistory"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessAsset"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "item",
+          "tasks",
+          "history",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessExpenseDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/BusinessExpense"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessTask"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessHistory"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "item",
+          "tasks",
+          "history",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessWorkbenchSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "done": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "overdue": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "generation": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "pending",
+          "done",
+          "overdue",
+          "generation",
+          "revision"
+        ]
+      },
+      "BusinessTodosQueryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "",
+              "draft",
+              "submitted",
+              "approved",
+              "returned",
+              "withdrawn"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId"
+        ]
+      },
+      "BusinessDoneQueryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "",
+              "draft",
+              "submitted",
+              "approved",
+              "returned",
+              "withdrawn"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId"
+        ]
+      },
+      "BusinessApprovalsQueryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "",
+              "draft",
+              "submitted",
+              "approved",
+              "returned",
+              "withdrawn"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId"
+        ]
+      },
+      "BusinessTravelsQueryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "",
+              "draft",
+              "submitted",
+              "approved",
+              "returned",
+              "withdrawn"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId"
+        ]
+      },
+      "BusinessExpensesQueryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "",
+              "draft",
+              "submitted",
+              "approved",
+              "returned",
+              "withdrawn"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId"
+        ]
+      },
+      "BusinessWorkbenchSummaryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId"
+        ]
+      },
+      "BusinessApprovalReadInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "id"
+        ]
+      },
+      "BusinessTravelReadInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "id"
+        ]
+      },
+      "BusinessExpenseReadInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "id"
+        ]
+      },
+      "BusinessApprovalMaterialsListInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "expectedGeneration"
+        ]
+      },
+      "BusinessTravelReceiptsListInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "id"
+        ]
+      },
+      "BusinessApprovalSubmitInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "requestId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "materialIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "minItems": 1,
+            "maxItems": 10
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "requestId",
+          "title",
+          "description",
+          "materialIds"
+        ]
+      },
+      "BusinessTravelSubmitInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "departmentId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "travelerIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "minItems": 1,
+            "maxItems": 10
+          },
+          "origin": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "destination": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "startAt": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "endAt": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "estimatedAmountCents": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "departmentId",
+          "travelerIds",
+          "origin",
+          "destination",
+          "startAt",
+          "endAt",
+          "estimatedAmountCents"
+        ]
+      },
+      "BusinessTravelDraftSaveInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "formId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "applicantId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "departmentId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "assetIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "minItems": 0,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "formId",
+          "applicantId",
+          "departmentId",
+          "amountCents",
+          "assetIds"
+        ]
+      },
+      "BusinessTravelReceiptRegisterInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "travelFormId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "travelFormId",
+          "filename"
+        ]
+      },
+      "BusinessExpenseCheckInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "travelFormId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessExpenseReceipt"
+            },
+            "minItems": 1,
+            "maxItems": 20
+          },
+          "lineItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessExpenseLine"
+            },
+            "minItems": 1,
+            "maxItems": 40
+          },
+          "declaredTotalCents": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "travelFormId",
+          "receipts",
+          "lineItems",
+          "declaredTotalCents"
+        ]
+      },
+      "BusinessExpenseCorrectInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "travelFormId": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessExpenseReceipt"
+            },
+            "minItems": 1,
+            "maxItems": 20
+          },
+          "lineItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BusinessExpenseLine"
+            },
+            "minItems": 1,
+            "maxItems": 40
+          },
+          "declaredTotalCents": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "expenseFormId": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "travelFormId",
+          "receipts",
+          "lineItems",
+          "declaredTotalCents",
+          "expenseFormId"
+        ]
+      },
+      "BusinessApprovalApproveInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id",
+          "opinion"
+        ]
+      },
+      "BusinessApprovalReturnInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id",
+          "opinion"
+        ]
+      },
+      "BusinessApprovalWithdrawInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id",
+          "opinion"
+        ]
+      },
+      "BusinessTravelApproveInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id",
+          "opinion"
+        ]
+      },
+      "BusinessTravelReturnInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id",
+          "opinion"
+        ]
+      },
+      "BusinessTravelResubmitInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id"
+        ]
+      },
+      "BusinessExpenseSubmitInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id"
+        ]
+      },
+      "BusinessExpenseApproveInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id",
+          "opinion"
+        ]
+      },
+      "BusinessExpenseReturnInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "opinion": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "id",
+          "opinion"
+        ]
+      },
+      "BusinessTodoCompleteInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+          },
+          "todoId": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "expectedVersion",
+          "idempotencyKey",
+          "todoId"
+        ]
+      },
+      "BusinessTodoSummarizeInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedGeneration": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "actorId": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "expectedGeneration",
+          "actorId",
+          "date"
+        ]
       }
     }
   }

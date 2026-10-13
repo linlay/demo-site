@@ -1,4 +1,6 @@
-# MCP Demo 实施记录
+# demo-site MCP 实施记录
+
+2026-10-13 业务能力与验证见 [业务接入记录](mcp-business-progress.md)，最新 11 个基础工具与验证见 [收敛记录](mcp-primitives-progress.md)。下文保留 2026-10-03 连接验证的历史范围。
 
 ## 范围与工作区
 

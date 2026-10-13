@@ -7,20 +7,17 @@ type Scenario struct {
 	Group         string `json:"group"`
 	BackendStatus string `json:"backendStatus"`
 }
-type CatalogOutput struct {
-	Scenarios []Scenario `json:"scenarios"`
-}
 
 var scenarioCatalog = []Scenario{
-	{ID: "O01", Title: "工作台与待办", Group: "office", BackendStatus: "browser-only"},
+	{ID: "O01", Title: "工作台与待办", Group: "office", BackendStatus: "migrated-sources-only"},
 	{ID: "O02", Title: "人员与组织", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O03", Title: "公告与通知", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O04", Title: "邮件与内部消息", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O05", Title: "日程与会议", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O06", Title: "文档与知识库", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O07", Title: "表格与数据处理", Group: "office", BackendStatus: "browser-only"},
-	{ID: "O08", Title: "通用审批", Group: "office", BackendStatus: "browser-only"},
-	{ID: "O09", Title: "差旅与费用", Group: "office", BackendStatus: "browser-only"},
+	{ID: "O08", Title: "通用审批", Group: "office", BackendStatus: "migrated"},
+	{ID: "O09", Title: "差旅与费用", Group: "office", BackendStatus: "migrated-core"},
 	{ID: "O10", Title: "人事与考勤", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O11", Title: "采购与供应商", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O12", Title: "合同与用印", Group: "office", BackendStatus: "browser-only"},

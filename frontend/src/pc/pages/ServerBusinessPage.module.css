@@ -1,0 +1,234 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--color-text-primary);
+}
+.page h1,
+.page h2,
+.page h3,
+.page p {
+  margin: 0;
+}
+.heading,
+.detail header,
+.editor header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.heading p {
+  color: var(--color-text-secondary);
+  margin-top: 6px;
+}
+.page label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.page input,
+.page select,
+.page textarea {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 8px;
+  color: var(--color-text-primary);
+  min-width: 0;
+}
+.page button {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 8px 14px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.page button[aria-pressed='true'] {
+  border-color: var(--color-gold-primary);
+  color: var(--color-gold-primary);
+}
+.page button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.page button:focus-visible,
+.page input:focus-visible,
+.page select:focus-visible {
+  outline: 2px solid var(--color-gold-primary);
+  outline-offset: 2px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.metrics article {
+  padding: 16px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.metrics strong {
+  font-size: 24px;
+}
+.tabs,
+.filters,
+.actions,
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+.tabs {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.filters label:first-child {
+  flex: 1;
+}
+.table,
+.editor {
+  overflow-x: auto;
+}
+.page table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.page caption {
+  text-align: left;
+  padding: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+.page th {
+  text-align: left;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.page th,
+.page td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+.page td small {
+  display: block;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+.page td input,
+.page td select {
+  width: 100%;
+  box-sizing: border-box;
+}
+.table {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-bg-surface);
+}
+.pagination {
+  justify-content: flex-end;
+  font-size: 13px;
+}
+.pagination span {
+  margin-right: auto;
+}
+.error {
+  color: var(--color-rose-primary, #db5970);
+  padding: 12px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+.detail,
+.editor {
+  padding: 20px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.detail dl {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  margin: 0;
+}
+.detail dt {
+  color: var(--color-text-secondary);
+}
+.detail dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.history {
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.history li {
+  padding-left: 14px;
+  border-left: 2px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.history li span {
+  color: var(--color-text-secondary);
+}
+.editor form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.page textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.page fieldset {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 12px;
+}
+.page .check {
+  flex-direction: row;
+  align-items: center;
+  margin: 8px 0;
+}
+@media (max-width: 760px) {
+  .heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+  .table table {
+    min-width: 650px;
+  }
+  .detail dl {
+    grid-template-columns: 90px 1fr;
+  }
+}

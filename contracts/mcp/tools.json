@@ -1,0 +1,34 @@
+{
+  "catalogVersion": "0.3.0",
+  "defaultToolCount": 11,
+  "optionalToolCount": 2,
+  "requiredConnectionScope": "context:read",
+  "design": "Each write performs one explicit domain operation. Clients compose summaries and multi-step workflows through repeated primitive calls. Browser/HTTP Actions retain their contracts.",
+  "tools": [
+    { "name": "context_get", "scope": "context:read", "readOnly": true, "purpose": "Space, generation, scene support and supported workflow actions" },
+    { "name": "directory_query", "scope": "directory:read", "readOnly": true, "purpose": "Employees, departments and fictional roles" },
+    { "name": "tasks_query", "scope": "business:read", "readOnly": true, "purpose": "Open/done tasks, kind/date/query filters and pagination" },
+    { "name": "records_query", "scope": "business:read", "readOnly": true, "purpose": "Approval/travel/expense lists or one detail with its history and input reference options" },
+    { "name": "approval_submit", "scope": "business:write", "readOnly": false, "purpose": "Submit or resubmit one approval request" },
+    { "name": "travel_submit", "scope": "business:write", "readOnly": false, "purpose": "Submit one travel request" },
+    { "name": "travel_draft_save", "scope": "business:write", "readOnly": false, "purpose": "Save one existing travel draft" },
+    { "name": "receipt_register", "scope": "business:write", "readOnly": false, "purpose": "Register one fictional receipt attachment" },
+    { "name": "expense_prepare", "scope": "business:write", "readOnly": false, "purpose": "Validate and save one new or returned expense claim, without submitting it" },
+    { "name": "workflow_transition", "scope": "business:write", "readOnly": false, "purpose": "Perform one explicitly named transition using existing domain services" },
+    { "name": "analysis_query", "scope": "reports:read", "readOnly": true, "purpose": "Query live business or historical analysis" }
+  ],
+  "optionalTools": [
+    { "name": "workspace_reset_preview", "scope": "demo:reset", "readOnly": false, "purpose": "Obtain a reset confirmation token" },
+    { "name": "workspace_reset_execute", "scope": "demo:reset", "readOnly": false, "purpose": "Execute one confirmed workspace reset" }
+  ],
+  "workflow": {
+    "approval": ["approve", "return", "withdraw"],
+    "travel": ["approve", "return", "resubmit"],
+    "expense": ["submit", "approve", "return"]
+  },
+  "composition": {
+    "dailySummary": "Call tasks_query with from/to equal to the desired date, separately for open and done tasks; paginate and calculate counts/overdue from the results.",
+    "expenseWorkflow": "records_query -> receipt_register as needed -> expense_prepare -> workflow_transition(submit) -> workflow_transition(approve or return); after return repeat expense_prepare and submit.",
+    "completeTodo": "Use tasks_query to obtain sourceType/sourceId/sourceVersion, then call workflow_transition for that source. No duplicate todo completion tool."
+  }
+}

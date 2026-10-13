@@ -3,8 +3,8 @@ export const EXPENSE_CHECK_SCHEMA = {
   additionalProperties: false,
   required: ['actorId', 'travelFormId', 'receipts', 'lineItems', 'declaredTotalCents', 'idempotencyKey'],
   properties: {
-    actorId: { type: 'string', pattern: '^EMP-[0-9]{3}$' },
-    travelFormId: { type: 'string', pattern: '^FORM-[0-9]{3}$' },
+    actorId: { type: 'string', pattern: '^EMP-[0-9]{3,}$' },
+    travelFormId: { type: 'string', pattern: '^FORM-[0-9]{3,}$' },
     receipts: {
       type: 'array',
       minItems: 1,
@@ -15,7 +15,7 @@ export const EXPENSE_CHECK_SCHEMA = {
         required: ['invoiceNo', 'assetId', 'amountCents'],
         properties: {
           invoiceNo: { type: 'string', minLength: 1, maxLength: 64 },
-          assetId: { type: 'string', pattern: '^AST-[0-9]{3}$' },
+          assetId: { type: 'string', pattern: '^AST-[0-9]{3,}$' },
           amountCents: { type: 'integer', minimum: 1 }
         }
       }
@@ -41,8 +41,8 @@ export const EXPENSE_CHECK_SCHEMA = {
 };
 
 const MUTATION_PROPERTIES = {
-  expenseFormId: { type: 'string', pattern: '^FORM-[0-9]{3}$' },
-  actorId: { type: 'string', pattern: '^EMP-[0-9]{3}$' },
+  expenseFormId: { type: 'string', pattern: '^FORM-[0-9]{3,}$' },
+  actorId: { type: 'string', pattern: '^EMP-[0-9]{3,}$' },
   expectedVersion: { type: 'integer', minimum: 1 },
   idempotencyKey: { type: 'string', pattern: '^[A-Za-z0-9_.:-]{1,128}$' }
 };

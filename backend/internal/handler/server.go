@@ -40,6 +40,8 @@ func New(sessions *service.Sessions, c config.Config, logger *slog.Logger) http.
 	mux.HandleFunc("GET /api/v1/events", s.events)
 	mux.HandleFunc("POST /api/v1/session/reset", s.reset)
 	mux.HandleFunc("POST /api/v1/reports/query", s.report)
+	mux.HandleFunc("POST /api/v1/business/{operation}", s.business)
+	mux.HandleFunc("POST /api/v1/business/{operation}/{validation}", s.business)
 	if c.MCP.Enabled {
 		mcpHandler := mcpserver.New(c.MCP, c.Origins, sessions, logger)
 		portal := mcpserver.NewPortal(mcpHandler)
@@ -168,7 +170,7 @@ func decode(w http.ResponseWriter, r *http.Request, destination any) error {
 		return model.Failure(400, "request.invalid-json", "请求 JSON 无效。")
 	}
 	for field, value := range fields {
-		if bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+		if bytes.Equal(bytes.TrimSpace(value), []byte("null")) && !(field == "requestId" && strings.HasPrefix(r.URL.Path, "/api/v1/business/approval_submit")) {
 			return model.Invalid(field, "字段不能为 null；未筛选的文本字段请传空字符串。")
 		}
 	}

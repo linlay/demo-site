@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -33,13 +35,13 @@ func setup(t *testing.T) (*mcpserver.Handler, *service.Sessions, model.Session) 
 		t.Fatal(err)
 	}
 	issuer := "https://auth.example/realms/awcp"
-	p := model.Principal{Issuer: issuer, Subject: "user-a", ClientID: "client", Scopes: []string{"context:read", "directory:read", "reports:read", "demo:reset"}}
+	p := model.Principal{Issuer: issuer, Subject: "user-a", ClientID: "client", Scopes: []string{"context:read", "directory:read", "reports:read", "business:read", "business:write", "demo:reset"}}
 	if _, _, err = s.ConnectMCP(context.Background(), cookie, p); err != nil {
 		t.Fatal(err)
 	}
 	h := mcpserver.New(config.MCP{Enabled: true, PublicURL: "https://app.example/mcp", Issuer: issuer, Username: "user-a", Password: "test-password", EnableReset: true}, []string{"https://app.example"}, s, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	for _, label := range []string{"full", "read-context", "other-user"} {
-		scope := "context:read directory:read reports:read demo:reset"
+		scope := "context:read directory:read reports:read business:read business:write demo:reset"
 		subject := "user-a"
 		if label == "read-context" {
 			scope = "context:read"
@@ -122,7 +124,7 @@ func TestMetadataAuthenticationOriginAndScopeChallenges(t *testing.T) {
 			t.Fatalf("missing discovery challenge: %d", rec.Code)
 		}
 	}
-	denied := call(t, h, "2026-07-28", "read-context", "tools/call", "demo_analysis_query", map[string]any{})
+	denied := call(t, h, "2026-07-28", "read-context", "tools/call", "analysis_query", map[string]any{})
 	if denied.Code != 403 || !strings.Contains(denied.Header().Get("WWW-Authenticate"), `scope="reports:read"`) {
 		t.Fatal("missing scope challenge")
 	}
@@ -152,7 +154,7 @@ func TestToolDiscoveryAndCallsAcrossNewAndLegacyProtocol(t *testing.T) {
 			}
 			listed := result(t, call(t, h, version, "full", "tools/list", "", nil))
 			tools := listed["tools"].([]any)
-			if len(tools) != 6 {
+			if len(tools) != 13 {
 				t.Fatalf("got %d tools", len(tools))
 			}
 			for _, raw := range tools {
@@ -161,12 +163,12 @@ func TestToolDiscoveryAndCallsAcrossNewAndLegacyProtocol(t *testing.T) {
 					t.Fatal("missing schemas")
 				}
 			}
-			contextResult := result(t, call(t, h, version, "full", "tools/call", "demo_context_get", map[string]any{}))
+			contextResult := result(t, call(t, h, version, "full", "tools/call", "context_get", map[string]any{}))
 			content := contextResult["structuredContent"].(map[string]any)
 			if content["workspaceId"] != view.ID {
 				t.Fatalf("wrong workspace: %+v", content)
 			}
-			report := result(t, call(t, h, version, "full", "tools/call", "demo_analysis_query", map[string]any{"expectedGeneration": view.Generation, "filter": map[string]any{"pageSize": 5}}))
+			report := result(t, call(t, h, version, "full", "tools/call", "analysis_query", map[string]any{"expectedGeneration": view.Generation, "filter": map[string]any{"pageSize": 5, "dataSource": "historical-fixtures"}}))
 			data := report["structuredContent"].(map[string]any)
 			if data["dataSource"] != "historical-fixtures" {
 				t.Fatal("missing fixture label")
@@ -178,14 +180,14 @@ func TestToolDiscoveryAndCallsAcrossNewAndLegacyProtocol(t *testing.T) {
 		})
 	}
 	limited := result(t, call(t, h, "2026-07-28", "read-context", "tools/list", "", nil))
-	if len(limited["tools"].([]any)) != 2 {
+	if len(limited["tools"].([]any)) != 1 {
 		t.Fatal("scope-filtered registry leaked tools")
 	}
-	other := result(t, call(t, h, "2026-07-28", "other-user", "tools/call", "demo_context_get", map[string]any{}))
+	other := result(t, call(t, h, "2026-07-28", "other-user", "tools/call", "context_get", map[string]any{}))
 	if other["isError"] != true {
 		t.Fatal("another user read workspace")
 	}
-	stale := result(t, call(t, h, "2026-07-28", "full", "tools/call", "demo_analysis_query", map[string]any{"expectedGeneration": "stale", "filter": map[string]any{}}))
+	stale := result(t, call(t, h, "2026-07-28", "full", "tools/call", "analysis_query", map[string]any{"expectedGeneration": "stale", "filter": map[string]any{}}))
 	if stale["isError"] != true {
 		t.Fatal("stale generation accepted")
 	}
@@ -194,7 +196,7 @@ func TestToolDiscoveryAndCallsAcrossNewAndLegacyProtocol(t *testing.T) {
 func TestToolSchemaRejectsExtraFieldsAndInvalidPagination(t *testing.T) {
 	h, _, _ := setup(t)
 	for _, args := range []map[string]any{{"sessionId": "victim"}, {"pageSize": 101}, {"pageSize": nil}} {
-		rec := call(t, h, "2026-07-28", "full", "tools/call", "demo_directory_query", args)
+		rec := call(t, h, "2026-07-28", "full", "tools/call", "directory_query", args)
 		var body map[string]any
 		if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
 			t.Fatal(err)
@@ -205,5 +207,195 @@ func TestToolSchemaRejectsExtraFieldsAndInvalidPagination(t *testing.T) {
 				t.Fatalf("invalid input accepted: %s", rec.Body.String())
 			}
 		}
+	}
+}
+
+func TestBusinessToolsCommitAndScopeFiltering(t *testing.T) {
+	h, _, view := setup(t)
+	listed := result(t, call(t, h, "2026-07-28", "full", "tools/list", "", nil))
+	for _, raw := range listed["tools"].([]any) {
+		if strings.HasPrefix(raw.(map[string]any)["name"].(string), "demo_") {
+			t.Fatal("legacy tool prefix exposed")
+		}
+	}
+	args := map[string]any{"expectedGeneration": view.Generation, "actorId": "EMP-001", "expectedVersion": 0, "idempotencyKey": "mcp-business-submit", "requestId": nil, "title": "虚构MCP申请", "description": "办理能力验证", "materialIds": []string{"APMAT-001"}}
+	submitted := result(t, call(t, h, "2026-07-28", "full", "tools/call", "approval_submit", args))
+	if submitted["isError"] == true {
+		t.Fatalf("submit: %+v", submitted)
+	}
+	item := submitted["structuredContent"].(map[string]any)
+	denied := call(t, h, "2026-07-28", "read-context", "tools/call", "workflow_transition", map[string]any{})
+	if denied.Code != 403 || !strings.Contains(denied.Header().Get("WWW-Authenticate"), "business:write") {
+		t.Fatal("write scope bypassed")
+	}
+	approved := result(t, call(t, h, "2026-07-28", "full", "tools/call", "workflow_transition", map[string]any{"kind": "approval", "action": "approve", "expectedGeneration": view.Generation, "actorId": "EMP-002", "expectedVersion": 1, "idempotencyKey": "mcp-approve", "id": item["id"], "opinion": "同意"}))
+	if approved["isError"] == true {
+		t.Fatalf("approve: %+v", approved)
+	}
+	done := result(t, call(t, h, "2026-07-28", "full", "tools/call", "tasks_query", map[string]any{"status": "done", "expectedGeneration": view.Generation, "actorId": "EMP-002"}))
+	if done["structuredContent"].(map[string]any)["total"] != float64(3) {
+		t.Fatalf("done: %+v", done)
+	}
+	catalog := result(t, call(t, h, "2026-07-28", "full", "tools/call", "context_get", map[string]any{}))
+	if len(catalog["structuredContent"].(map[string]any)["scenarios"].([]any)) != 31 {
+		t.Fatal("scenario inventory incomplete")
+	}
+}
+
+func TestPrimitiveCatalogMatchesDiscoveryAndRemovesCompositeAliases(t *testing.T) {
+	h, _, _ := setup(t)
+	var catalog struct {
+		DefaultToolCount  int `json:"defaultToolCount"`
+		OptionalToolCount int `json:"optionalToolCount"`
+		Tools             []struct {
+			Name, Scope string
+			ReadOnly    bool `json:"readOnly"`
+		} `json:"tools"`
+		OptionalTools []struct {
+			Name, Scope string
+			ReadOnly    bool `json:"readOnly"`
+		} `json:"optionalTools"`
+	}
+	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "contracts", "mcp", "tools.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = json.Unmarshal(raw, &catalog); err != nil {
+		t.Fatal(err)
+	}
+	if catalog.DefaultToolCount != 11 || catalog.OptionalToolCount != 2 || len(catalog.Tools) != 11 || len(catalog.OptionalTools) != 2 {
+		t.Fatal("catalog count")
+	}
+	expected := map[string]bool{}
+	for _, entry := range append(catalog.Tools, catalog.OptionalTools...) {
+		expected[entry.Name] = entry.ReadOnly
+	}
+	for _, reset := range []bool{false, true} {
+		h.Config.EnableReset = reset
+		listed := result(t, call(t, h, "2026-07-28", "full", "tools/list", "", nil))["tools"].([]any)
+		count := 11
+		if reset {
+			count = 13
+		}
+		if len(listed) != count {
+			t.Fatalf("tools %d", len(listed))
+		}
+		for _, raw := range listed {
+			tool := raw.(map[string]any)
+			name := tool["name"].(string)
+			readOnly, ok := expected[name]
+			if !ok {
+				t.Fatalf("unexpected tool %s", name)
+			}
+			annotations := tool["annotations"].(map[string]any)
+			if (annotations["readOnlyHint"] == true) != readOnly {
+				t.Fatalf("wrong readonly scope %s", name)
+			}
+		}
+	}
+	// Every documented scope must expose exactly its tools; merging entry
+	// points must not accidentally expose writes to a business-read token.
+	entries := append(catalog.Tools, catalog.OptionalTools...)
+	checkedScopes := map[string]bool{}
+	for _, entry := range entries {
+		if checkedScopes[entry.Scope] {
+			continue
+		}
+		checkedScopes[entry.Scope] = true
+		scopes := "context:read"
+		if entry.Scope != "context:read" {
+			scopes += " " + entry.Scope
+		}
+		token, _, err := h.Auth.Issue(context.Background(), "client", scopes)
+		if err != nil {
+			t.Fatal(err)
+		}
+		label := "scope-" + entry.Scope
+		if _, err = h.Sessions.Store.DB.Exec(`UPDATE demo_oauth_tokens SET hash=? WHERE hash=?`, authn.Hash(authn.Hash(label)), authn.Hash(token)); err != nil {
+			t.Fatal(err)
+		}
+		wanted := map[string]bool{}
+		for _, candidate := range entries {
+			if candidate.Scope == entry.Scope || candidate.Scope == "context:read" {
+				wanted[candidate.Name] = true
+			}
+		}
+		listed := result(t, call(t, h, "2026-07-28", label, "tools/list", "", nil))["tools"].([]any)
+		if len(listed) != len(wanted) {
+			t.Fatalf("scope %s: wrong tool count %d", entry.Scope, len(listed))
+		}
+		for _, raw := range listed {
+			name := raw.(map[string]any)["name"].(string)
+			if !wanted[name] {
+				t.Fatalf("scope %s exposes %s", entry.Scope, name)
+			}
+		}
+	}
+	// Removed aliases must not remain callable outside tools/list.
+	for _, name := range []string{"scenarios_list", "done_query", "workbench_summary", "todo_summarize", "todo_complete", "approval_approve", "travel_receipts_list", "expense_check"} {
+		rec := call(t, h, "2026-07-28", "full", "tools/call", name, map[string]any{})
+		var rpc map[string]any
+		if err = json.Unmarshal(rec.Body.Bytes(), &rpc); err != nil {
+			t.Fatal(err)
+		}
+		if rpc["error"] == nil {
+			r, _ := rpc["result"].(map[string]any)
+			if r["isError"] != true {
+				t.Fatalf("removed alias callable: %s", name)
+			}
+		}
+	}
+}
+func TestPrimitiveSchemasRejectInvalidPairsAndCompoundSteps(t *testing.T) {
+	h, s, view := setup(t)
+	cases := []struct {
+		name string
+		args map[string]any
+	}{
+		{"workflow_transition", map[string]any{"kind": "approval", "action": "submit"}},
+		{"workflow_transition", map[string]any{"kind": "expense", "action": "withdraw"}},
+		{"workflow_transition", map[string]any{"kind": "travel", "action": "submit"}},
+		{"workflow_transition", map[string]any{"kind": "approval", "action": []string{"approve", "return"}}},
+		{"workflow_transition", map[string]any{"kind": "approval", "action": "approve", "opinion": nil}},
+		{"records_query", map[string]any{"kind": "approval", "id": "APPR-001", "page": 1}},
+		{"records_query", map[string]any{"kind": "approval", "id": ""}},
+		{"tasks_query", map[string]any{"status": "all"}},
+		{"tasks_query", map[string]any{"status": "done", "from": "2026-02-30"}},
+		{"expense_prepare", map[string]any{"expenseFormId": "", "expectedVersion": 0}},
+	}
+	for n, test := range cases {
+		args := map[string]any{"expectedGeneration": view.Generation, "actorId": "EMP-002", "id": "APPR-001", "expectedVersion": 1, "idempotencyKey": fmt.Sprintf("invalid-%d", n), "opinion": "单步Schema校验"}
+		if test.name != "workflow_transition" {
+			delete(args, "id")
+			delete(args, "expectedVersion")
+			delete(args, "idempotencyKey")
+			delete(args, "opinion")
+		}
+		if test.name == "expense_prepare" {
+			args["travelFormId"] = "TRAVEL-001"
+			args["expectedVersion"] = 0
+			args["idempotencyKey"] = fmt.Sprintf("invalid-%d", n)
+			args["receipts"] = []map[string]any{{"invoiceNo": "invoice", "assetId": "asset", "amountCents": 100}}
+			args["lineItems"] = []map[string]any{{"invoiceNo": "invoice", "category": "transport", "amountCents": 100}}
+			args["declaredTotalCents"] = 100
+		}
+		for k, v := range test.args {
+			args[k] = v
+		}
+		rec := call(t, h, "2026-07-28", "full", "tools/call", test.name, args)
+		var rpc map[string]any
+		if err := json.Unmarshal(rec.Body.Bytes(), &rpc); err != nil {
+			t.Fatal(err)
+		}
+		if rpc["error"] == nil {
+			r, _ := rpc["result"].(map[string]any)
+			if r["isError"] != true {
+				t.Fatalf("invalid primitive accepted: %s", rec.Body.String())
+			}
+		}
+	}
+	var events int
+	if err := s.Store.DB.QueryRow(`SELECT count(*) FROM workspace_events`).Scan(&events); err != nil || events != 0 {
+		t.Fatal("invalid primitive changed business", err)
 	}
 }

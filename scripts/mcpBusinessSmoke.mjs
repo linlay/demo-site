@@ -1,0 +1,45 @@
+// Mutates fictional data only; run against an isolated loopback test database.
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+const base = process.env.AWCP_DEMO_URL ?? 'http://127.0.0.1:22181';
+const url = new URL(base);
+if (url.protocol !== 'http:' || !['127.0.0.1','localhost','[::1]'].includes(url.hostname) || url.pathname !== '/' || url.search || url.hash || url.username || url.password) throw new Error('Business smoke requires a loopback origin and an isolated test database');
+const get = path => fetch(base+path,{redirect:'manual',signal:AbortSignal.timeout(10000)});
+const page=await get('/api/v1/mcp/connect');assert.equal(page.status,200);
+const html=await page.text();const nonce=html.match(/name="nonce" value="([^"]+)"/)?.[1];assert.ok(nonce);
+const login=await fetch(base+'/api/v1/mcp/connect/start',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',Origin:base,Cookie:page.headers.getSetCookie()[0].split(';')[0]},body:new URLSearchParams({nonce,username:process.env.AWCP_MCP_USERNAME??'demo',password:process.env.AWCP_MCP_PASSWORD??'demo'}),redirect:'manual',signal:AbortSignal.timeout(10000)});assert.equal(login.status,200);
+const token=(await login.text()).match(/spellcheck="false">([^<]+)<\/textarea>/)?.[1];assert.ok(token);
+const browserCookie=login.headers.getSetCookie().find(cookie=>cookie.startsWith('awcp_demo='))?.split(';')[0];assert.ok(browserCookie);
+let id=0;
+async function rpc(method,params={}){
+ const response=await fetch(base+'/mcp',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json, text/event-stream','MCP-Protocol-Version':'2026-07-28','MCP-Method':method,...(params.name?{'MCP-Name':params.name}:{})},body:JSON.stringify({jsonrpc:'2.0',id:++id,method,params:{...params,_meta:{'io.modelcontextprotocol/protocolVersion':'2026-07-28','io.modelcontextprotocol/clientInfo':{name:'business-smoke',version:'1'},'io.modelcontextprotocol/clientCapabilities':{}}}}),signal:AbortSignal.timeout(10000)});
+ assert.equal(response.status,200);const body=await response.json();assert.equal(body.error,undefined);return body.result;
+}
+const tools=(await rpc('tools/list')).tools;assert.equal(tools.length,11);assert.ok(tools.every(tool=>!tool.name.startsWith('demo_')));
+const context=(await rpc('tools/call',{name:'context_get',arguments:{}})).structuredContent;
+const generation=context.generation;assert.ok(generation);assert.equal(context.scenarios.length,31);
+const call=async(name,args)=>{const out=await rpc('tools/call',{name,arguments:{expectedGeneration:generation,...args}});assert.notEqual(out.isError,true,`${name}: ${JSON.stringify(out.content)}`);return out.structuredContent;};
+const write=(actorId,expectedVersion)=>({actorId,expectedVersion,idempotencyKey:randomUUID()});
+const approvalOptions=await call('records_query',{kind:'approval',actorId:'EMP-001',pageSize:1});assert.ok(approvalOptions.materials.length);
+const approvalInput={...write('EMP-001',0),requestId:null,title:'虚构MCP闭环申请',description:'本地隔离验证',materialIds:[approvalOptions.materials[0].id]};
+const approval=await call('approval_submit',approvalInput);assert.deepEqual(await call('approval_submit',approvalInput),approval);
+const returned=await call('workflow_transition',{kind:'approval',action:'return',...write('EMP-002',1),id:approval.id,opinion:'请补正'});
+const resubmitted=await call('approval_submit',{...approvalInput,...write('EMP-001',returned.businessVersion),requestId:approval.id});
+await call('workflow_transition',{kind:'approval',action:'approve',...write('EMP-002',resubmitted.businessVersion),id:approval.id,opinion:'同意'});
+const nextDay=new Date(Date.now()+86400000).toISOString();const end=new Date(Date.now()+172800000).toISOString();
+const trip=await call('travel_submit',{...write('EMP-001',0),departmentId:'DEP-001',travelerIds:['EMP-001'],origin:'上海',destination:'北京',startAt:nextDay,endAt:end,estimatedAmountCents:8000});
+const approvedTrip=await call('workflow_transition',{kind:'travel',action:'approve',...write('EMP-002',1),id:trip.id,opinion:'同意'});
+const tripDetail=await call('records_query',{kind:'travel',id:trip.id,actorId:'EMP-001'});assert.equal(tripDetail.items[0].status,'approved');
+const asset=await call('receipt_register',{...write('EMP-001',approvedTrip.businessVersion),travelFormId:trip.id,filename:'虚构交通票据.txt'});
+const expenseInput={...write('EMP-001',0),travelFormId:trip.id,receipts:[{invoiceNo:randomUUID(),assetId:asset.id,amountCents:8000}],lineItems:[],declaredTotalCents:8000};expenseInput.lineItems=[{category:'transport',invoiceNo:expenseInput.receipts[0].invoiceNo,amountCents:8000}];
+const expense=await call('expense_prepare',expenseInput);assert.equal(expense.status,'draft');assert.equal(expense.taskId,null);
+const prepared=await call('records_query',{kind:'expense',id:expense.id,actorId:'EMP-001'});assert.equal(prepared.items[0].status,'draft');assert.equal((await call('tasks_query',{actorId:'EMP-002',query:expense.id})).total,0);
+const sent=await call('workflow_transition',{kind:'expense',action:'submit',...write('EMP-001',expense.businessVersion),id:expense.id});
+const returnedExpense=await call('workflow_transition',{kind:'expense',action:'return',...write('EMP-002',sent.businessVersion),id:expense.id,opinion:'请核对票据'});
+const corrected=await call('expense_prepare',{...expenseInput,...write('EMP-001',returnedExpense.businessVersion),expenseFormId:expense.id});
+const resent=await call('workflow_transition',{kind:'expense',action:'submit',...write('EMP-001',corrected.businessVersion),id:expense.id});
+await call('workflow_transition',{kind:'expense',action:'approve',...write('EMP-002',resent.businessVersion),id:expense.id,opinion:'同意'});
+const done=await call('tasks_query',{status:'done',actorId:'EMP-002',pageSize:100});assert.ok(done.items.some(item=>item.sourceId===expense.id&&item.outcome==='approve'));
+const report=await call('analysis_query',{filter:{dataSource:'business',groupBy:'status',pageSize:100}});assert.equal(report.dataSource,'business');assert.ok(report.report.items.some(item=>item.id===expense.id&&item.status==='approved'));
+const webpage=await fetch(base+'/api/v1/business/approvals_query',{method:'POST',headers:{Origin:base,Cookie:browserCookie,'Content-Type':'application/json','X-Demo-Generation':generation},body:JSON.stringify({actorId:'EMP-001'}),signal:AbortSignal.timeout(10000)});assert.equal(webpage.status,200);assert.ok((await webpage.json()).items.some(item=>item.id===approval.id&&item.status==='approved'));
+console.log(`PASS: ${tools.length} tools, approval submit/return/resubmit/approve, travel/receipts, expense check/submit/return/correct/resubmit/approve, done, live analysis, composed primitive workflow, no implicit expense submission, shared browser/MCP state. No credentials printed.`);

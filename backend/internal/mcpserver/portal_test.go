@@ -240,3 +240,32 @@ func TestPublicDemoCredentialsAndBothLoginFlows(t *testing.T) {
 		})
 	}
 }
+
+func TestOAuthDefaultBusinessScopesAndExplicitReadOnlyConsent(t *testing.T) {
+	h, _, _ := setup(t)
+	p := mcpserver.NewPortal(h)
+	client := register(t, h)
+	sum := sha256.Sum256([]byte(authn.Secret()))
+	for _, scope := range []string{"", "context:read"} {
+		q := url.Values{"client_id": {client}, "response_type": {"code"}, "redirect_uri": {"http://127.0.0.1:8989/callback"}, "resource": {h.Config.PublicURL}, "code_challenge": {base64.RawURLEncoding.EncodeToString(sum[:])}, "code_challenge_method": {"S256"}, "state": {"scope-test"}}
+		if scope != "" {
+			q.Set("scope", scope)
+		}
+		rec := httptest.NewRecorder()
+		p.Authorize(rec, request("GET", "/api/v1/mcp/oauth/authorize?"+q.Encode(), nil, nil))
+		if rec.Code != 200 {
+			t.Fatal(rec.Body.String())
+		}
+		body := rec.Body.String()
+		if strings.Contains(body, "business:write") != (scope == "") {
+			t.Fatal("consent changed explicit scope")
+		}
+		if strings.Contains(body, "demo:reset") {
+			t.Fatal("destructive reset granted by default")
+		}
+	}
+	challenge := call(t, h, "2026-07-28", "", "tools/list", "", nil)
+	if !strings.Contains(challenge.Header().Get("WWW-Authenticate"), "business:write") {
+		t.Fatal("challenge still requests context-only grant")
+	}
+}

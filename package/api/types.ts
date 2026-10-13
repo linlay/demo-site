@@ -39,6 +39,8 @@ export interface ApiFailure {
   fieldErrors?: { path: string[]; messages: string[] }[];
 }
 export interface ReportFilter {
+  dataSource?: 'business' | 'historical-fixtures';
+  kind?: '' | 'approval' | 'travel' | 'expense';
   from: string;
   to: string;
   departmentId: string;
@@ -56,6 +58,7 @@ export interface ReportMetrics {
   averageHours: number | null;
 }
 export interface ReportEntry {
+  kind?: string;
   id: string;
   scenarioId: string;
   departmentId: string;

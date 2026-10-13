@@ -1,4 +1,4 @@
-const ACTOR = { type: 'string', pattern: '^EMP-[0-9]{3}$' };
+const ACTOR = { type: 'string', pattern: '^EMP-[0-9]{3,}$' };
 const KEY = { type: 'string', pattern: '^[A-Za-z0-9_.:-]{1,128}$' };
 
 export const TODO_QUERY_SCHEMA = {
@@ -14,7 +14,7 @@ export const TODO_COMPLETE_SCHEMA = {
   required: ['actorId', 'todoId', 'expectedVersion', 'idempotencyKey'],
   properties: {
     actorId: ACTOR,
-    todoId: { type: 'string', pattern: '^(?:TODO|OTODO)-[0-9]{3}$' },
+    todoId: { type: 'string', pattern: '^(?:TODO|OTODO)-[0-9]{3,}$' },
     expectedVersion: { type: 'integer', minimum: 1 },
     idempotencyKey: KEY
   }

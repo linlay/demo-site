@@ -12,21 +12,33 @@ import (
 )
 
 var toolScopes = map[string]string{
-	"demo_context_get": "context:read", "demo_scenarios_list": "context:read",
-	"demo_directory_query": "directory:read", "demo_analysis_query": "reports:read",
-	"demo_reset_preview": "demo:reset", "demo_reset_execute": "demo:reset",
+	"context_get": "context:read", "directory_query": "directory:read", "analysis_query": "reports:read",
+	"tasks_query": "business:read", "records_query": "business:read",
+	"approval_submit": "business:write", "travel_submit": "business:write", "travel_draft_save": "business:write",
+	"receipt_register": "business:write", "expense_prepare": "business:write", "workflow_transition": "business:write",
+	"workspace_reset_preview": "demo:reset", "workspace_reset_execute": "demo:reset",
 }
 
 type Empty struct{}
+type WorkflowCapability struct {
+	Kind    string   `json:"kind"`
+	Actions []string `json:"actions"`
+}
 type ContextOutput struct {
-	Principal      model.Principal `json:"principal"`
-	WorkspaceID    string          `json:"workspaceId"`
-	Generation     string          `json:"generation"`
-	DatasetVersion string          `json:"datasetVersion"`
-	ExpiresAt      string          `json:"expiresAt"`
-	RecordCount    int             `json:"recordCount"`
-	DataSource     string          `json:"dataSource"`
-	ConnectURL     string          `json:"connectUrl"`
+	Scenarios      []Scenario           `json:"scenarios"`
+	Workflow       []WorkflowCapability `json:"workflow"`
+	DataSources    []string             `json:"dataSources"`
+	CurrentTime    string               `json:"currentTime"`
+	DefaultActorID string               `json:"defaultActorId"`
+	ActorSelection string               `json:"actorSelection"`
+	Principal      model.Principal      `json:"principal"`
+	WorkspaceID    string               `json:"workspaceId"`
+	Generation     string               `json:"generation"`
+	DatasetVersion string               `json:"datasetVersion"`
+	ExpiresAt      string               `json:"expiresAt"`
+	RecordCount    int                  `json:"recordCount"`
+	DataSource     string               `json:"dataSource"`
+	ConnectURL     string               `json:"connectUrl"`
 }
 type AnalysisInput struct {
 	ExpectedGeneration string             `json:"expectedGeneration"`
@@ -71,8 +83,8 @@ func add[In, Out any](h *Handler, s *mcp.Server, v verified, name, title, descri
 	if !v.Principal.HasScope(scope) {
 		return
 	}
-	closed, destructive := false, name == "demo_reset_execute"
-	mcp.AddTool(s, &mcp.Tool{Name: name, Title: title, Description: description, InputSchema: schema, Annotations: &mcp.ToolAnnotations{ReadOnlyHint: readOnly, DestructiveHint: &destructive, OpenWorldHint: &closed, IdempotentHint: name == "demo_reset_execute"}}, func(ctx context.Context, req *mcp.CallToolRequest, in In) (*mcp.CallToolResult, Out, error) {
+	closed, destructive := false, name == "workspace_reset_execute"
+	mcp.AddTool(s, &mcp.Tool{Name: name, Title: title, Description: description, InputSchema: schema, Annotations: &mcp.ToolAnnotations{ReadOnlyHint: readOnly, DestructiveHint: &destructive, OpenWorldHint: &closed, IdempotentHint: readOnly || name != "workspace_reset_preview"}}, func(ctx context.Context, req *mcp.CallToolRequest, in In) (*mcp.CallToolResult, Out, error) {
 		started := time.Now()
 		var zero Out
 		ctx, cancel := context.WithDeadline(ctx, minTime(v.Expiry, started.Add(25*time.Second)))
@@ -102,18 +114,18 @@ func minTime(a, b time.Time) time.Time {
 func (h *Handler) server(v verified) *mcp.Server {
 	s := mcp.NewServer(protocolImplementation, &mcp.ServerOptions{Logger: h.Logger, Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{}}})
 	p := v.Principal
-	add(h, s, v, "demo_context_get", "读取演示上下文", "读取已授权空间及当前数据版本；历史样本不代表实时业务。未关联时按错误中的 connectUrl 登录。", object(nil), true, func(ctx context.Context, _ Empty) (ContextOutput, error) {
+	add(h, s, v, "context_get", "读取演示上下文", "读取已授权空间、场景支持、单步流转动作及当前数据版本；包含业务数据与历史样本，actorId仅用于虚构人员角色模拟。未关联时按错误中的 connectUrl 登录。", object(nil), true, func(ctx context.Context, _ Empty) (ContextOutput, error) {
 		view, err := h.Sessions.MCPContext(ctx, p)
-		return ContextOutput{Principal: p, WorkspaceID: view.ID, Generation: view.Generation, DatasetVersion: view.DatasetVersion, ExpiresAt: view.ExpiresAt, RecordCount: view.RecordCount, DataSource: "historical-fixtures", ConnectURL: h.Config.ConnectURL()}, err
+		return ContextOutput{Scenarios: scenarioCatalog, Workflow: []WorkflowCapability{{Kind: "approval", Actions: []string{"approve", "return", "withdraw"}}, {Kind: "travel", Actions: []string{"approve", "return", "resubmit"}}, {Kind: "expense", Actions: []string{"submit", "approve", "return"}}}, Principal: p, WorkspaceID: view.ID, Generation: view.Generation, DatasetVersion: view.DatasetVersion, ExpiresAt: view.ExpiresAt, RecordCount: view.RecordCount, DataSource: "workspace", DataSources: []string{"business", "historical-fixtures"}, CurrentTime: time.Now().UTC().Format(time.RFC3339), DefaultActorID: "EMP-002", ActorSelection: "actorId selects a fictional employee role within this authorized workspace; directory_query lists available roles", ConnectURL: h.Config.ConnectURL()}, err
 	})
-	add(h, s, v, "demo_scenarios_list", "查询场景支持状态", "列出既有场景及后端迁移状态；browser-only 场景当前不能通过 MCP 办理。", object(nil), true, func(_ context.Context, _ Empty) (CatalogOutput, error) {
-		return CatalogOutput{Scenarios: scenarioCatalog}, nil
-	})
-	add(h, s, v, "demo_directory_query", "查询演示组织人员", "分页查询当前授权空间的虚构人员；列表不代表已授予这些人员的业务操作权。", object(map[string]any{"departmentId": textSchema(32), "query": textSchema(120), "page": integer(1, 100000), "pageSize": integer(1, 100)}), true, func(ctx context.Context, in service.DirectoryFilter) (service.DirectoryResult, error) {
+	add(h, s, v, "directory_query", "查询演示组织人员", "分页查询当前授权空间的虚构人员；列表不代表已授予这些人员的业务操作权。", object(map[string]any{"departmentId": textSchema(32), "query": textSchema(120), "page": integer(1, 100000), "pageSize": integer(1, 100)}), true, func(ctx context.Context, in service.DirectoryFilter) (service.DirectoryResult, error) {
 		return h.Sessions.MCPDirectory(ctx, p, in)
 	})
-	filter := object(map[string]any{"from": textSchema(10), "to": textSchema(10), "departmentId": textSchema(32), "scenarioId": enum("", "O08", "O09", "O11", "O12", "O15"), "status": enum("", "pending", "approved", "returned", "withdrawn"), "groupBy": enum("month", "department", "scenario", "status"), "page": integer(1, 100000), "pageSize": integer(1, 100)})
-	add(h, s, v, "demo_analysis_query", "查询历史分析", "查询 SQLite 固定历史样本。先取得 expectedGeneration；支持日期、部门、场景、状态筛选及最多 100 条分页。", object(map[string]any{"expectedGeneration": textSchema(128), "filter": filter}, "expectedGeneration", "filter"), true, func(ctx context.Context, in AnalysisInput) (AnalysisOutput, error) {
+	filter := object(map[string]any{"dataSource": enum("business", "historical-fixtures"), "kind": enum("", "approval", "travel", "expense"), "from": textSchema(10), "to": textSchema(10), "departmentId": textSchema(32), "scenarioId": enum("", "O08", "O09", "O11", "O12", "O15"), "status": enum("", "pending", "approved", "returned", "withdrawn", "draft"), "groupBy": enum("month", "department", "scenario", "status"), "page": integer(1, 100000), "pageSize": integer(1, 100)})
+	add(h, s, v, "analysis_query", "查询数据分析", "默认统计SQLite实时业务表（O08/O09），可显式选择historical-fixtures历史样本。先读context_get取得expectedGeneration，支持筛选、分组和最多100条分页。差旅预算与报销是独立单据，按单据口径统计金额。", object(map[string]any{"expectedGeneration": textSchema(128), "filter": filter}, "expectedGeneration", "filter"), true, func(ctx context.Context, in AnalysisInput) (AnalysisOutput, error) {
+		if in.Filter.DataSource == "" {
+			in.Filter.DataSource = "business"
+		}
 		if in.Filter.GroupBy == "" {
 			in.Filter.GroupBy = "month"
 		}
@@ -124,16 +136,17 @@ func (h *Handler) server(v verified) *mcp.Server {
 			in.Filter.PageSize = 20
 		}
 		report, err := h.Sessions.MCPReport(ctx, p, in.ExpectedGeneration, in.Filter)
-		return AnalysisOutput{DataSource: "historical-fixtures", Report: report}, err
+		return AnalysisOutput{DataSource: in.Filter.DataSource, Report: report}, err
 	})
 	if h.Config.EnableReset {
-		add(h, s, v, "demo_reset_preview", "预览重置", "生成绑定当前身份、客户端和数据版本的五分钟重置凭据。请向用户说明重置影响；不会修改业务数据。", object(map[string]any{"expectedGeneration": textSchema(128)}, "expectedGeneration"), false, func(ctx context.Context, in GenerationInput) (service.ResetPreview, error) {
+		add(h, s, v, "workspace_reset_preview", "预览重置", "生成绑定当前身份、客户端和数据版本的五分钟重置凭据。请向用户说明重置影响；不会修改业务数据。", object(map[string]any{"expectedGeneration": textSchema(128)}, "expectedGeneration"), false, func(ctx context.Context, in GenerationInput) (service.ResetPreview, error) {
 			return h.Sessions.MCPResetPreview(ctx, p, in.ExpectedGeneration)
 		})
-		add(h, s, v, "demo_reset_execute", "重置演示空间", "用户确认后，凭预览令牌恢复当前空间。取消不能回滚已提交重置；响应丢失必须使用原幂等键和原凭据重试。", object(map[string]any{"expectedGeneration": textSchema(128), "idempotencyKey": map[string]any{"type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,128}$"}, "confirmationToken": textSchema(128)}, "expectedGeneration", "idempotencyKey", "confirmationToken"), false, func(ctx context.Context, in ResetInput) (ResetOutput, error) {
+		add(h, s, v, "workspace_reset_execute", "重置演示空间", "用户确认后，凭预览令牌恢复当前空间。取消不能回滚已提交重置；响应丢失必须使用原幂等键和原凭据重试。", object(map[string]any{"expectedGeneration": textSchema(128), "idempotencyKey": map[string]any{"type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,128}$"}, "confirmationToken": textSchema(128)}, "expectedGeneration", "idempotencyKey", "confirmationToken"), false, func(ctx context.Context, in ResetInput) (ResetOutput, error) {
 			view, err := h.Sessions.MCPReset(ctx, p, in.ExpectedGeneration, in.IdempotencyKey, in.ConfirmationToken)
 			return ResetOutput{WorkspaceID: view.ID, Generation: view.Generation, RecordCount: view.RecordCount}, err
 		})
 	}
+	h.addBusinessTools(s, v)
 	return s
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,6 +30,18 @@ func (s *Store) ReportFor(ctx context.Context, access model.Access, generation s
 		return result, model.Failure(409, "session.generation-conflict", "数据已重置，请刷新。")
 	}
 	result.Revision = session.Revision
+	source := "report_entries"
+	kindColumn := "''"
+	if f.DataSource == "business" {
+		b := &BusinessTx{Context: ctx, Tx: tx, Session: session, Access: access, Now: now}
+		if err = b.initialize(); err != nil {
+			return result, err
+		}
+		// Timestamp is server-generated, never interpolated from caller arguments.
+		kindColumn = "kind"
+		source = "(SELECT *, CASE WHEN scenario_id='O08' THEN 'approval' ELSE (SELECT kind FROM business_forms f WHERE f.session_id=business_report_entries.session_id AND f.id=business_report_entries.id) END AS kind, (due_at<>'' AND CAST(strftime('%s',due_at) AS INTEGER)<" + strconv.FormatInt(now.Unix(), 10) + ") AS overdue FROM business_report_entries)"
+	}
+
 	where := []string{"session_id=?"}
 	args := []any{session.ID}
 	for _, field := range []struct{ column, operator, value string }{{"created_on", ">=", f.From}, {"created_on", "<=", f.To}, {"department_id", "=", f.DepartmentID}, {"scenario_id", "=", f.ScenarioID}, {"status", "=", f.Status}} {
@@ -37,7 +50,11 @@ func (s *Store) ReportFor(ctx context.Context, access model.Access, generation s
 			args = append(args, field.value)
 		}
 	}
-	clause := " FROM report_entries WHERE " + strings.Join(where, " AND ")
+	if f.Kind != "" {
+		where = append(where, "kind=?")
+		args = append(args, f.Kind)
+	}
+	clause := " FROM " + source + " WHERE " + strings.Join(where, " AND ")
 	m := &result.Summary
 	if err = tx.QueryRowContext(ctx, "SELECT "+metricsSQL+clause, args...).Scan(&m.Count, &m.AmountCents, &m.Approved, &m.Overdue, &m.AverageHours); err != nil {
 		return result, err
@@ -64,13 +81,13 @@ func (s *Store) ReportFor(ctx context.Context, access model.Access, generation s
 	}
 	rows.Close()
 	pageArgs := append(append([]any{}, args...), f.PageSize, (f.Page-1)*f.PageSize)
-	rows, err = tx.QueryContext(ctx, `SELECT id,scenario_id,department_id,owner_id,title,status,amount_cents,created_on,duration_hours,overdue`+clause+` ORDER BY created_on DESC,id ASC LIMIT ? OFFSET ?`, pageArgs...)
+	rows, err = tx.QueryContext(ctx, `SELECT id,scenario_id,department_id,owner_id,title,status,amount_cents,created_on,duration_hours,overdue,`+kindColumn+clause+` ORDER BY created_on DESC,id ASC LIMIT ? OFFSET ?`, pageArgs...)
 	if err != nil {
 		return result, err
 	}
 	for rows.Next() {
 		var e model.ReportEntry
-		if err = rows.Scan(&e.ID, &e.ScenarioID, &e.DepartmentID, &e.OwnerID, &e.Title, &e.Status, &e.AmountCents, &e.CreatedOn, &e.DurationHours, &e.Overdue); err != nil {
+		if err = rows.Scan(&e.ID, &e.ScenarioID, &e.DepartmentID, &e.OwnerID, &e.Title, &e.Status, &e.AmountCents, &e.CreatedOn, &e.DurationHours, &e.Overdue, &e.Kind); err != nil {
 			rows.Close()
 			return result, err
 		}

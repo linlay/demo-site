@@ -187,7 +187,7 @@ func (p *Portal) Authorize(w http.ResponseWriter, r *http.Request) {
 	}
 	scope := q.Get("scope")
 	if scope == "" {
-		scope = "context:read"
+		scope = strings.Join(p.MCP.DefaultScopes(), " ")
 	}
 	scopes := strings.Fields(scope)
 	if !slices.Contains(scopes, "context:read") {

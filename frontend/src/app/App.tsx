@@ -12,6 +12,7 @@ import { useDemoSession } from '../pc/hooks/useDemoSession';
 import { createSessionRepository } from '../pc/service/sessionRepository';
 import { AppProviders } from './AppProviders';
 
+const ServerBusinessPage = lazy(() => import('../pc/pages/ServerBusinessPage'));
 const AnalysisPage = lazy(() => import('../pc/pages/AnalysisPage'));
 const ScenarioCatalogPage = lazy(() => import('../pc/pages/ScenarioCatalogPage'));
 const BusinessScenePage = lazy(() => import('../pc/pages/BusinessScenePage'));
@@ -71,10 +72,11 @@ export function App(): ReactElement {
         <Suspense fallback={<p role="status">{t("正在加载场景…")}</p>}>
           {route.kind === 'analysis' && <AnalysisPage />}
           {route.kind === 'catalog' && <ScenarioCatalogPage navigate={navigate} />}
-          {route.kind === 'scene' && route.scenario.id === 'O01' && (
+          {route.kind === 'scene' && demo && ['O01', 'O08', 'O09'].includes(route.scenario.id) && <ServerBusinessPage scene={route.scenario.id as 'O01' | 'O08' | 'O09'} objectId={route.objectId} formType={route.formType} navigate={navigate} />}
+          {route.kind === 'scene' && !demo && route.scenario.id === 'O01' && (
             <O01TodoPage repository={repository} navigate={navigate} objectId={route.objectId} />
           )}
-          {route.kind === 'scene' && route.scenario.group !== 'protocol' && route.scenario.id !== 'O01' && (
+          {route.kind === 'scene' && route.scenario.group !== 'protocol' && route.scenario.id !== 'O01' && !(demo && ['O08', 'O09'].includes(route.scenario.id)) && (
             <BusinessScenePage
               scenario={route.scenario}
               repository={repository}

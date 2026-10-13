@@ -8,6 +8,8 @@ const dimensions = ['month', 'status', 'department', 'scenario'] as const;
 export function useReportCharts(api: DemoApi, filter: ReportFilter, generation: string, revision = 0) {
   // Paging and the detail table's grouping do not change these four aggregates.
   const key = JSON.stringify({
+    dataSource: filter.dataSource,
+    kind: filter.kind,
     from: filter.from,
     to: filter.to,
     departmentId: filter.departmentId,

@@ -22,7 +22,7 @@ import (
 )
 
 // protocolImplementation is shared by every per-request, scope-filtered server.
-var protocolImplementation = &mcp.Implementation{Name: "demo-site", Version: "0.2.0"}
+var protocolImplementation = &mcp.Implementation{Name: "demo-site", Version: "0.3.0"}
 
 type verifiedKey struct{}
 type verified struct {
@@ -71,11 +71,15 @@ func New(c config.MCP, origins []string, s *service.Sessions, logger *slog.Logge
 }
 
 func (h *Handler) Scopes() []string {
-	scopes := []string{"context:read", "directory:read", "reports:read"}
+	scopes := []string{"context:read", "directory:read", "reports:read", "business:read", "business:write"}
 	if h.Config.EnableReset {
 		scopes = append(scopes, "demo:reset")
 	}
 	return scopes
+}
+
+func (h *Handler) DefaultScopes() []string {
+	return []string{"context:read", "directory:read", "reports:read", "business:read", "business:write"}
 }
 
 func (h *Handler) Metadata(w http.ResponseWriter, r *http.Request) {
@@ -173,7 +177,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	parts := strings.Fields(r.Header.Get("Authorization"))
 	if len(r.Header.Values("Authorization")) != 1 || len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-		h.challenge(w, 401, "", "context:read")
+		h.challenge(w, 401, "", strings.Join(h.DefaultScopes(), " "))
 		return
 	}
 	p, expiry, err := h.Verifier.Verify(r.Context(), parts[1])

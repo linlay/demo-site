@@ -90,7 +90,7 @@ func TestMCPResetConfirmationBindsClientGenerationAndKey(t *testing.T) {
 	_, err = s.MCPReset(ctx, p, a.Generation, "different-key", preview.ConfirmationToken)
 	status(t, err, 409)
 	var count int
-	if err = store.DB.QueryRow(`SELECT count(*) FROM mcp_audit_events WHERE operation='demo_reset_execute'`).Scan(&count); err != nil || count != 1 {
+	if err = store.DB.QueryRow(`SELECT count(*) FROM mcp_audit_events WHERE operation='workspace_reset_execute'`).Scan(&count); err != nil || count != 1 {
 		t.Fatalf("reset audit count %d: %v", count, err)
 	}
 	next, err := s.MCPResetPreview(ctx, p, reset.Generation)

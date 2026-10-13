@@ -1,12 +1,12 @@
 {
   "generatedBy": "scripts/generateMcpCatalog.mjs",
-  "note": "Static Action inventory; not an executable registry. Dynamic browser Actions require separate review.",
+  "note": "Static Action inventory; shared tools may serve multiple Actions. Composite Actions use repeated primitive calls. Browser-only Actions have no MCP mapping.",
   "scenarios": [
     {
       "id": "O01",
       "title": "工作台与待办",
       "group": "office",
-      "backendStatus": "browser-only"
+      "backendStatus": "migrated-sources-only"
     },
     {
       "id": "O02",
@@ -48,13 +48,13 @@
       "id": "O08",
       "title": "通用审批",
       "group": "office",
-      "backendStatus": "browser-only"
+      "backendStatus": "migrated"
     },
     {
       "id": "O09",
       "title": "差旅与费用",
       "group": "office",
-      "backendStatus": "browser-only"
+      "backendStatus": "migrated-core"
     },
     {
       "id": "O10",
@@ -191,8 +191,20 @@
   ],
   "actions": [
     {
+      "action": "approve",
+      "tool": null,
+      "tools": [],
+      "status": "pending-domain-migration",
+      "sources": [
+        "frontend/src/pc/pages/ServerBusinessPage.tsx"
+      ]
+    },
+    {
       "action": "demo.analysis.query",
-      "tool": "demo_analysis_query",
+      "tool": "analysis_query",
+      "tools": [
+        "analysis_query"
+      ],
       "status": "implemented",
       "sources": [
         "frontend/src/pc/pages/AnalysisPage.tsx"
@@ -200,7 +212,8 @@
     },
     {
       "action": "office.access.request",
-      "tool": "office_access_request",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/OfficeNewPage.tsx"
@@ -208,7 +221,8 @@
     },
     {
       "action": "office.admin.read",
-      "tool": "office_admin_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O13AdminPage.tsx"
@@ -216,32 +230,55 @@
     },
     {
       "action": "office.approval.approve",
-      "tool": "office_approval_approve",
-      "status": "pending-domain-migration",
+      "tool": "workflow_transition",
+      "tools": [
+        "workflow_transition"
+      ],
+      "status": "implemented",
+      "parameters": {
+        "kind": "approval",
+        "action": "approve"
+      },
       "sources": [
         "frontend/src/pc/pages/O08ApprovalPage.tsx"
       ]
     },
     {
       "action": "office.approval.read",
-      "tool": "office_approval_read",
-      "status": "pending-domain-migration",
+      "tool": "records_query",
+      "tools": [
+        "records_query"
+      ],
+      "status": "implemented",
+      "parameters": {
+        "kind": "approval"
+      },
       "sources": [
         "frontend/src/pc/pages/O08ApprovalPage.tsx"
       ]
     },
     {
       "action": "office.approval.return",
-      "tool": "office_approval_return",
-      "status": "pending-domain-migration",
+      "tool": "workflow_transition",
+      "tools": [
+        "workflow_transition"
+      ],
+      "status": "implemented",
+      "parameters": {
+        "kind": "approval",
+        "action": "return"
+      },
       "sources": [
         "frontend/src/pc/pages/O08ApprovalPage.tsx"
       ]
     },
     {
       "action": "office.approval.submit",
-      "tool": "office_approval_submit",
-      "status": "pending-domain-migration",
+      "tool": "approval_submit",
+      "tools": [
+        "approval_submit"
+      ],
+      "status": "implemented",
       "sources": [
         "frontend/src/pc/pages/O08ApprovalNewPage.tsx",
         "frontend/src/pc/pages/O08ApprovalPage.tsx"
@@ -249,15 +286,23 @@
     },
     {
       "action": "office.approval.withdraw",
-      "tool": "office_approval_withdraw",
-      "status": "pending-domain-migration",
+      "tool": "workflow_transition",
+      "tools": [
+        "workflow_transition"
+      ],
+      "status": "implemented",
+      "parameters": {
+        "kind": "approval",
+        "action": "withdraw"
+      },
       "sources": [
         "frontend/src/pc/pages/O08ApprovalPage.tsx"
       ]
     },
     {
       "action": "office.archive.save",
-      "tool": "office_archive_save",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O16ReportPage.tsx"
@@ -265,7 +310,8 @@
     },
     {
       "action": "office.archive.search",
-      "tool": "office_archive_search",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O16ReportPage.tsx"
@@ -273,7 +319,8 @@
     },
     {
       "action": "office.asset.assign",
-      "tool": "office_asset_assign",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O13AdminPage.tsx"
@@ -281,7 +328,8 @@
     },
     {
       "action": "office.asset.return",
-      "tool": "office_asset_return",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O13AdminPage.tsx"
@@ -289,7 +337,8 @@
     },
     {
       "action": "office.attendance.correct",
-      "tool": "office_attendance_correct",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O10HrNewPage.tsx"
@@ -297,7 +346,8 @@
     },
     {
       "action": "office.contract.read",
-      "tool": "office_contract_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O12ContractPage.tsx"
@@ -305,7 +355,8 @@
     },
     {
       "action": "office.contract.register",
-      "tool": "office_contract_register",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/OfficeNewPage.tsx"
@@ -313,7 +364,8 @@
     },
     {
       "action": "office.directory.query",
-      "tool": "office_directory_query",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O02DirectoryPage.tsx"
@@ -321,7 +373,8 @@
     },
     {
       "action": "office.discussion.create",
-      "tool": "office_discussion_create",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/OfficeNewPage.tsx"
@@ -329,7 +382,8 @@
     },
     {
       "action": "office.discussion.read",
-      "tool": "office_discussion_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O04CommunicationPage.tsx"
@@ -337,7 +391,8 @@
     },
     {
       "action": "office.document.archive",
-      "tool": "office_document_archive",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O06DocumentPage.tsx"
@@ -345,7 +400,8 @@
     },
     {
       "action": "office.document.draft.patch",
-      "tool": "office_document_draft_patch",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O06DocumentPage.tsx"
@@ -353,7 +409,8 @@
     },
     {
       "action": "office.document.query",
-      "tool": "office_document_query",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O06DocumentPage.tsx"
@@ -361,7 +418,8 @@
     },
     {
       "action": "office.document.read",
-      "tool": "office_document_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O06DocumentPage.tsx"
@@ -369,7 +427,8 @@
     },
     {
       "action": "office.document.revision.approve",
-      "tool": "office_document_revision_approve",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O06DocumentPage.tsx"
@@ -377,47 +436,76 @@
     },
     {
       "action": "office.expense.check",
-      "tool": "office_expense_check",
-      "status": "pending-domain-migration",
+      "tool": "expense_prepare",
+      "tools": [
+        "expense_prepare"
+      ],
+      "status": "implemented",
+      "note": "Omit expenseFormId and use expectedVersion 0.",
       "sources": [
         "frontend/src/pc/components/ExpenseCheckForm.tsx"
       ]
     },
     {
       "action": "office.expense.correct",
-      "tool": "office_expense_correct",
-      "status": "pending-domain-migration",
+      "tool": "expense_prepare",
+      "tools": [
+        "expense_prepare"
+      ],
+      "status": "implemented",
+      "note": "Supply the returned expenseFormId and its current version.",
       "sources": [
         "frontend/src/pc/components/ExpenseFlowPanel.tsx"
       ]
     },
     {
       "action": "office.expense.read",
-      "tool": "office_expense_read",
-      "status": "pending-domain-migration",
+      "tool": "records_query",
+      "tools": [
+        "records_query"
+      ],
+      "status": "implemented",
+      "parameters": {
+        "kind": "expense"
+      },
       "sources": [
         "frontend/src/pc/components/ExpenseFlowPanel.tsx"
       ]
     },
     {
       "action": "office.expense.review",
-      "tool": "office_expense_review",
-      "status": "pending-domain-migration",
+      "tool": "workflow_transition",
+      "tools": [
+        "workflow_transition"
+      ],
+      "status": "implemented",
+      "parameters": {
+        "kind": "expense"
+      },
+      "note": "Use exactly one action: approve or return, according to the requested decision.",
       "sources": [
         "frontend/src/pc/components/ExpenseFlowPanel.tsx"
       ]
     },
     {
       "action": "office.expense.submit",
-      "tool": "office_expense_submit",
-      "status": "pending-domain-migration",
+      "tool": "workflow_transition",
+      "tools": [
+        "workflow_transition"
+      ],
+      "status": "implemented",
+      "parameters": {
+        "kind": "expense",
+        "action": "submit"
+      },
       "sources": [
         "frontend/src/pc/components/ExpenseFlowPanel.tsx"
       ]
     },
     {
       "action": "office.group.read",
-      "tool": "office_group_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O02DirectoryPage.tsx"
@@ -425,7 +513,8 @@
     },
     {
       "action": "office.group.save",
-      "tool": "office_group_save",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O02DirectoryPage.tsx"
@@ -433,7 +522,8 @@
     },
     {
       "action": "office.hr.read",
-      "tool": "office_hr_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O10HrPage.tsx"
@@ -441,7 +531,8 @@
     },
     {
       "action": "office.it.read",
-      "tool": "office_it_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O15ItPage.tsx"
@@ -449,7 +540,8 @@
     },
     {
       "action": "office.leave.submit",
-      "tool": "office_leave_submit",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O10HrNewPage.tsx"
@@ -457,7 +549,8 @@
     },
     {
       "action": "office.mail.archive",
-      "tool": "office_mail_archive",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O04CommunicationPage.tsx"
@@ -465,7 +558,8 @@
     },
     {
       "action": "office.mail.query",
-      "tool": "office_mail_query",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O04CommunicationPage.tsx"
@@ -473,7 +567,8 @@
     },
     {
       "action": "office.mail.read",
-      "tool": "office_mail_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O04CommunicationPage.tsx"
@@ -481,7 +576,8 @@
     },
     {
       "action": "office.mail.reply-draft",
-      "tool": "office_mail_reply_draft",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O04CommunicationPage.tsx"
@@ -489,7 +585,8 @@
     },
     {
       "action": "office.mail.send",
-      "tool": "office_mail_send",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O04CommunicationPage.tsx"
@@ -497,7 +594,8 @@
     },
     {
       "action": "office.meeting.availability",
-      "tool": "office_meeting_availability",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O05MeetingPage.tsx",
@@ -506,7 +604,8 @@
     },
     {
       "action": "office.meeting.minutes.save",
-      "tool": "office_meeting_minutes_save",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O05MeetingPage.tsx"
@@ -514,7 +613,8 @@
     },
     {
       "action": "office.meeting.read",
-      "tool": "office_meeting_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O05MeetingPage.tsx"
@@ -522,7 +622,8 @@
     },
     {
       "action": "office.meeting.reschedule",
-      "tool": "office_meeting_reschedule",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O05MeetingPage.tsx"
@@ -530,7 +631,8 @@
     },
     {
       "action": "office.meeting.reserve",
-      "tool": "office_meeting_reserve",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/OfficeNewPage.tsx"
@@ -538,7 +640,8 @@
     },
     {
       "action": "office.milestone.upsert",
-      "tool": "office_milestone_upsert",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O14ProjectPage.tsx"
@@ -546,7 +649,8 @@
     },
     {
       "action": "office.notice.draft",
-      "tool": "office_notice_draft",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O03NoticeNewPage.tsx"
@@ -554,7 +658,8 @@
     },
     {
       "action": "office.notice.publish",
-      "tool": "office_notice_publish",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O03NoticePage.tsx"
@@ -562,7 +667,8 @@
     },
     {
       "action": "office.notice.read",
-      "tool": "office_notice_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O03NoticePage.tsx"
@@ -570,7 +676,8 @@
     },
     {
       "action": "office.notice.recipients.replace",
-      "tool": "office_notice_recipients_replace",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O03NoticePage.tsx"
@@ -578,7 +685,8 @@
     },
     {
       "action": "office.notice.remind",
-      "tool": "office_notice_remind",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O03NoticePage.tsx"
@@ -586,7 +694,8 @@
     },
     {
       "action": "office.notice.unread",
-      "tool": "office_notice_unread",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O03NoticePage.tsx"
@@ -594,7 +703,8 @@
     },
     {
       "action": "office.personnel.process",
-      "tool": "office_personnel_process",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O10HrPage.tsx"
@@ -602,7 +712,8 @@
     },
     {
       "action": "office.procurement.compare",
-      "tool": "office_procurement_compare",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O11ProcurementPage.tsx"
@@ -610,7 +721,8 @@
     },
     {
       "action": "office.procurement.create",
-      "tool": "office_procurement_create",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O11ProcurementNewPage.tsx"
@@ -618,7 +730,8 @@
     },
     {
       "action": "office.procurement.read",
-      "tool": "office_procurement_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O11ProcurementPage.tsx"
@@ -626,7 +739,8 @@
     },
     {
       "action": "office.project.create",
-      "tool": "office_project_create",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/OfficeNewPage.tsx"
@@ -634,7 +748,8 @@
     },
     {
       "action": "office.project.read",
-      "tool": "office_project_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O14ProjectPage.tsx"
@@ -642,7 +757,8 @@
     },
     {
       "action": "office.receipt.accept",
-      "tool": "office_receipt_accept",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O11ProcurementPage.tsx"
@@ -650,7 +766,8 @@
     },
     {
       "action": "office.renewal.create",
-      "tool": "office_renewal_create",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O12ContractPage.tsx"
@@ -658,7 +775,8 @@
     },
     {
       "action": "office.repair.accept",
-      "tool": "office_repair_accept",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O13AdminPage.tsx"
@@ -666,7 +784,8 @@
     },
     {
       "action": "office.repair.resolve",
-      "tool": "office_repair_resolve",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O13AdminPage.tsx"
@@ -674,7 +793,8 @@
     },
     {
       "action": "office.report.details.query",
-      "tool": "office_report_details_query",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O16ReportPage.tsx"
@@ -682,7 +802,8 @@
     },
     {
       "action": "office.report.generate",
-      "tool": "office_report_generate",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/OfficeNewPage.tsx"
@@ -690,7 +811,8 @@
     },
     {
       "action": "office.report.read",
-      "tool": "office_report_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O16ReportPage.tsx"
@@ -698,7 +820,8 @@
     },
     {
       "action": "office.resource.reserve",
-      "tool": "office_resource_reserve",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/OfficeNewPage.tsx"
@@ -706,7 +829,8 @@
     },
     {
       "action": "office.seal.execute",
-      "tool": "office_seal_execute",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O12ContractPage.tsx"
@@ -714,7 +838,8 @@
     },
     {
       "action": "office.seal.review",
-      "tool": "office_seal_review",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O12ContractPage.tsx"
@@ -722,7 +847,8 @@
     },
     {
       "action": "office.seal.submit",
-      "tool": "office_seal_submit",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O12ContractPage.tsx"
@@ -730,7 +856,8 @@
     },
     {
       "action": "office.sheet.export.start",
-      "tool": "office_sheet_export_start",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O07SheetPage.tsx"
@@ -738,7 +865,8 @@
     },
     {
       "action": "office.sheet.import.check",
-      "tool": "office_sheet_import_check",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O07SheetPage.tsx"
@@ -746,7 +874,8 @@
     },
     {
       "action": "office.sheet.query",
-      "tool": "office_sheet_query",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O07SheetPage.tsx"
@@ -754,7 +883,8 @@
     },
     {
       "action": "office.sheet.rows.patch",
-      "tool": "office_sheet_rows_patch",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O07SheetPage.tsx"
@@ -762,7 +892,8 @@
     },
     {
       "action": "office.supplier.review",
-      "tool": "office_supplier_review",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O11ProcurementPage.tsx"
@@ -770,7 +901,8 @@
     },
     {
       "action": "office.task.create",
-      "tool": "office_task_create",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O04CommunicationPage.tsx",
@@ -779,7 +911,8 @@
     },
     {
       "action": "office.task.update",
-      "tool": "office_task_update",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O14ProjectPage.tsx"
@@ -787,7 +920,8 @@
     },
     {
       "action": "office.team.read",
-      "tool": "office_team_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O02DirectoryPage.tsx"
@@ -795,7 +929,8 @@
     },
     {
       "action": "office.team.replace",
-      "tool": "office_team_replace",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O02DirectoryPage.tsx"
@@ -803,7 +938,8 @@
     },
     {
       "action": "office.ticket.assign",
-      "tool": "office_ticket_assign",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O15ItPage.tsx"
@@ -811,7 +947,8 @@
     },
     {
       "action": "office.ticket.close",
-      "tool": "office_ticket_close",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O15ItPage.tsx"
@@ -819,7 +956,8 @@
     },
     {
       "action": "office.ticket.resolve",
-      "tool": "office_ticket_resolve",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O15ItPage.tsx"
@@ -827,31 +965,51 @@
     },
     {
       "action": "office.todo.complete",
-      "tool": "office_todo_complete",
-      "status": "pending-domain-migration",
+      "tool": "tasks_query",
+      "tools": [
+        "tasks_query",
+        "workflow_transition"
+      ],
+      "status": "composed-from-primitives",
+      "parameters": {
+        "kind": "travel",
+        "action": "approve"
+      },
+      "note": "Resolve source ID/version from the task, then perform one transition.",
       "sources": [
         "frontend/src/pc/pages/O01TodoPage.tsx"
       ]
     },
     {
       "action": "office.todo.query",
-      "tool": "office_todo_query",
-      "status": "pending-domain-migration",
+      "tool": "tasks_query",
+      "tools": [
+        "tasks_query"
+      ],
+      "status": "implemented",
+      "parameters": {
+        "status": "open"
+      },
       "sources": [
         "frontend/src/pc/pages/O01TodoPage.tsx"
       ]
     },
     {
       "action": "office.todo.summarize",
-      "tool": "office_todo_summarize",
-      "status": "pending-domain-migration",
+      "tool": "tasks_query",
+      "tools": [
+        "tasks_query"
+      ],
+      "status": "composed-from-primitives",
+      "note": "Query open/done tasks for the date, paginate and aggregate in the client.",
       "sources": [
         "frontend/src/pc/pages/O01TodoPage.tsx"
       ]
     },
     {
       "action": "office.training.complete",
-      "tool": "office_training_complete",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O10HrPage.tsx"
@@ -859,7 +1017,8 @@
     },
     {
       "action": "office.training.enroll",
-      "tool": "office_training_enroll",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O10HrPage.tsx"
@@ -867,7 +1026,8 @@
     },
     {
       "action": "office.training.query",
-      "tool": "office_training_query",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O10HrPage.tsx"
@@ -875,15 +1035,19 @@
     },
     {
       "action": "office.travel.submit",
-      "tool": "office_travel_submit",
-      "status": "pending-domain-migration",
+      "tool": "travel_submit",
+      "tools": [
+        "travel_submit"
+      ],
+      "status": "implemented",
       "sources": [
         "frontend/src/pc/components/TravelSubmitForm.tsx"
       ]
     },
     {
       "action": "office.weekly-report.generate",
-      "tool": "office_weekly_report_generate",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/O14ProjectPage.tsx"
@@ -891,7 +1055,8 @@
     },
     {
       "action": "securities.alert.assign",
-      "tool": "securities_alert_assign",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S04RiskPage.tsx"
@@ -899,7 +1064,8 @@
     },
     {
       "action": "securities.alert.close",
-      "tool": "securities_alert_close",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S04RiskPage.tsx"
@@ -907,7 +1073,8 @@
     },
     {
       "action": "securities.alert.evidence.attach",
-      "tool": "securities_alert_evidence_attach",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S04RiskPage.tsx"
@@ -915,7 +1082,8 @@
     },
     {
       "action": "securities.alert.query",
-      "tool": "securities_alert_query",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S04RiskPage.tsx"
@@ -923,7 +1091,8 @@
     },
     {
       "action": "securities.alert.read",
-      "tool": "securities_alert_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S04RiskPage.tsx"
@@ -931,7 +1100,8 @@
     },
     {
       "action": "securities.alert.review",
-      "tool": "securities_alert_review",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S04RiskPage.tsx"
@@ -939,7 +1109,8 @@
     },
     {
       "action": "securities.client.archive",
-      "tool": "securities_client_archive",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S01ClientPage.tsx"
@@ -947,7 +1118,8 @@
     },
     {
       "action": "securities.client.patch",
-      "tool": "securities_client_patch",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S01ClientPage.tsx"
@@ -955,7 +1127,8 @@
     },
     {
       "action": "securities.client.read",
-      "tool": "securities_client_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S01ClientPage.tsx"
@@ -963,7 +1136,8 @@
     },
     {
       "action": "securities.diligence.assign",
-      "tool": "securities_diligence_assign",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectPage.tsx"
@@ -971,7 +1145,8 @@
     },
     {
       "action": "securities.diligence.attach",
-      "tool": "securities_diligence_attach",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectPage.tsx"
@@ -979,7 +1154,8 @@
     },
     {
       "action": "securities.finding.resolve",
-      "tool": "securities_finding_resolve",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectPage.tsx"
@@ -987,7 +1163,8 @@
     },
     {
       "action": "securities.ib-project.archive",
-      "tool": "securities_ib_project_archive",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectPage.tsx"
@@ -995,7 +1172,8 @@
     },
     {
       "action": "securities.ib-project.create",
-      "tool": "securities_ib_project_create",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectNewPage.tsx"
@@ -1003,7 +1181,8 @@
     },
     {
       "action": "securities.ib-project.read",
-      "tool": "securities_ib_project_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectPage.tsx"
@@ -1011,7 +1190,8 @@
     },
     {
       "action": "securities.ib-project.review",
-      "tool": "securities_ib_project_review",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectPage.tsx"
@@ -1019,7 +1199,8 @@
     },
     {
       "action": "securities.ib-project.submit",
-      "tool": "securities_ib_project_submit",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectPage.tsx"
@@ -1027,7 +1208,8 @@
     },
     {
       "action": "securities.institution.query",
-      "tool": "securities_institution_query",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1035,7 +1217,8 @@
     },
     {
       "action": "securities.investigation.draft.save",
-      "tool": "securities_investigation_draft_save",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S04RiskPage.tsx"
@@ -1043,7 +1226,8 @@
     },
     {
       "action": "securities.investigation.record",
-      "tool": "securities_investigation_record",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S04RiskPage.tsx"
@@ -1051,7 +1235,8 @@
     },
     {
       "action": "securities.material-package.create",
-      "tool": "securities_material_package_create",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1059,7 +1244,8 @@
     },
     {
       "action": "securities.quality.submit",
-      "tool": "securities_quality_submit",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S03IbProjectPage.tsx"
@@ -1067,7 +1253,8 @@
     },
     {
       "action": "securities.research.archive",
-      "tool": "securities_research_archive",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S02ResearchPage.tsx"
@@ -1075,7 +1262,8 @@
     },
     {
       "action": "securities.research.check",
-      "tool": "securities_research_check",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S02ResearchPage.tsx"
@@ -1083,7 +1271,8 @@
     },
     {
       "action": "securities.research.create",
-      "tool": "securities_research_create",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S02ResearchNewPage.tsx"
@@ -1091,7 +1280,8 @@
     },
     {
       "action": "securities.research.patch",
-      "tool": "securities_research_patch",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S02ResearchPage.tsx"
@@ -1099,7 +1289,8 @@
     },
     {
       "action": "securities.research.publish",
-      "tool": "securities_research_publish",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S02ResearchPage.tsx"
@@ -1107,7 +1298,8 @@
     },
     {
       "action": "securities.research.read",
-      "tool": "securities_research_read",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S02ResearchPage.tsx"
@@ -1115,7 +1307,8 @@
     },
     {
       "action": "securities.research.review",
-      "tool": "securities_research_review",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S02ResearchPage.tsx"
@@ -1123,7 +1316,8 @@
     },
     {
       "action": "securities.research.submit-review",
-      "tool": "securities_research_submit_review",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S02ResearchPage.tsx"
@@ -1131,7 +1325,8 @@
     },
     {
       "action": "securities.review.decide",
-      "tool": "securities_review_decide",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S01ClientPage.tsx"
@@ -1139,7 +1334,8 @@
     },
     {
       "action": "securities.review.submit",
-      "tool": "securities_review_submit",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S01ClientPage.tsx"
@@ -1147,7 +1343,8 @@
     },
     {
       "action": "securities.roadshow.invite",
-      "tool": "securities_roadshow_invite",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1155,7 +1352,8 @@
     },
     {
       "action": "securities.roadshow.minutes.record",
-      "tool": "securities_roadshow_minutes_record",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1163,7 +1361,8 @@
     },
     {
       "action": "securities.roadshow.reserve",
-      "tool": "securities_roadshow_reserve",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1171,7 +1370,8 @@
     },
     {
       "action": "securities.service.entitlement-check",
-      "tool": "securities_service_entitlement_check",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1179,7 +1379,8 @@
     },
     {
       "action": "securities.service.followup",
-      "tool": "securities_service_followup",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1187,7 +1388,8 @@
     },
     {
       "action": "securities.service.need.revise",
-      "tool": "securities_service_need_revise",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1195,7 +1397,8 @@
     },
     {
       "action": "securities.service.summary",
-      "tool": "securities_service_summary",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S05InstitutionPage.tsx"
@@ -1203,7 +1406,8 @@
     },
     {
       "action": "securities.suitability.evaluate",
-      "tool": "securities_suitability_evaluate",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S01ClientPage.tsx"
@@ -1211,7 +1415,8 @@
     },
     {
       "action": "securities.suitability.match",
-      "tool": "securities_suitability_match",
+      "tool": null,
+      "tools": [],
       "status": "pending-domain-migration",
       "sources": [
         "frontend/src/pc/pages/S01ClientPage.tsx"

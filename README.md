@@ -4,9 +4,9 @@
 
 `demo-site` 是使用虚构数据的业务场景演示站点，包含 O01～O16、S01～S05、P01～P10 共 31 个既有场景，并支持 AWCP 浏览器协议。产品名称统一使用 `demo-site`，AWCP 仅作为协议与技术标识。
 
-**当前处于全栈改造第一阶段：基础版本已有本机验证及远程部署记录，整体业务迁移尚未完成。** Go/SQLite 已实现会话、重置与历史分析接口；既有 O/S 业务规则尚在浏览器，不能把本阶段理解为 31 个场景已经迁移到后端。执行状态见 [全栈改造计划](plans/fullstack/README.md)，已执行检查见 [实施记录](docs/fullstack-progress.md)。
+**当前处于全栈改造第一阶段：基础版本已有本机验证及远程部署记录，整体业务迁移尚未完成。** Go/SQLite 本地已实现会话、重置、历史／实时分析，以及 O01 工作台、O08 通用审批和 O09 差旅费用核心业务；其余 O/S 业务规则仍在浏览器，不能把本阶段理解为 31 个场景已经迁移到后端。执行状态见 [全栈改造计划](plans/fullstack/README.md)，已执行检查见 [实施记录](docs/fullstack-progress.md)。
 
-MCP 使用同一 Go 进程和 SQLite 内置授权，提供 demo 登录、标准 OAuth 发现、Access Token 获取及基础工具，见 [MCP 计划](plans/mcp/README.md)、[配置与使用](docs/mcp-deployment.md) 和 [实施验证记录](docs/mcp-progress.md)。未迁移业务不会以可执行 MCP 工具暴露；这不代表全量业务迁移已完成。
+MCP 使用同一 Go 进程和 SQLite 内置授权，提供 demo 登录、标准 OAuth 发现、Access Token 获取，以及工作台、通用审批、差旅费用和实时／历史分析的 11 个基础工具。复合流程通过多次调用基础工具完成，见 [MCP 计划](plans/mcp/README.md)、[配置与使用](docs/mcp-deployment.md) 和 [工具收敛记录](docs/mcp-primitives-progress.md)。未迁移业务不会以可执行 MCP 工具暴露；这不代表全量业务迁移已完成。
 
 ## 技术栈与目录
 

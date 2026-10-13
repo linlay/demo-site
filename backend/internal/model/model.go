@@ -59,6 +59,8 @@ func Invalid(field, message string) *Error {
 }
 
 type ReportFilter struct {
+	DataSource   string `json:"dataSource,omitempty"`
+	Kind         string `json:"kind,omitempty"`
 	From         string `json:"from"`
 	To           string `json:"to"`
 	DepartmentID string `json:"departmentId"`
@@ -80,6 +82,7 @@ type ReportGroup struct {
 	Metrics
 }
 type ReportEntry struct {
+	Kind          string `json:"kind,omitempty"`
 	ID            string `json:"id"`
 	ScenarioID    string `json:"scenarioId"`
 	DepartmentID  string `json:"departmentId"`

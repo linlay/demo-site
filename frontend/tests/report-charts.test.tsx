@@ -5,6 +5,8 @@ import { expect, it, vi } from 'vitest';
 import { useReportCharts } from '../src/pc/hooks/useReportCharts';
 
 const initial: ReportFilter = {
+  dataSource: 'business',
+  kind: 'expense',
   from: '',
   to: '',
   departmentId: '',
@@ -49,11 +51,14 @@ it('uses identical filters for four dimensions, cancels obsolete work and ignore
       'scenario'
     ]);
     for (const [filter] of report.mock.calls.slice(4))
-      expect(filter).toMatchObject({ scenarioId: 'O09', from: '2025-01-01', to: '2025-12-31', pageSize: 1 });
+      expect(filter).toMatchObject({ dataSource: 'business', kind: 'expense', scenarioId: 'O09', from: '2025-01-01', to: '2025-12-31', pageSize: 1 });
     await act(async () => deferred.forEach((resolve) => resolve()));
     expect(container.textContent).toBe('O09');
     await act(async () => root.render(<Probe api={api} filter={{ ...next, page: 2, groupBy: 'status' }} />));
     expect(report).toHaveBeenCalledTimes(8);
+    await act(async()=>root.render(<Probe api={api} filter={{...next,dataSource:'historical-fixtures',kind:''}} />));
+    expect(report).toHaveBeenCalledTimes(12);
+    for(const [filter] of report.mock.calls.slice(8))expect(filter.dataSource).toBe('historical-fixtures');
   } finally {
     await act(async () => root.unmount());
   }

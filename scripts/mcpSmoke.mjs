@@ -26,10 +26,10 @@ async function rpc(method,params={}) {
   return body.result;
 }
 const listed=await rpc('tools/list');
-if (!listed.tools?.some(tool=>tool.name==='demo_context_get')) throw new Error('Context tool missing');
-const context=await rpc('tools/call',{name:'demo_context_get',arguments:{}});
+if (!listed.tools?.some(tool=>tool.name==='context_get')) throw new Error('Context tool missing');
+const context=await rpc('tools/call',{name:'context_get',arguments:{}});
 const generation=context.structuredContent?.generation;
 if(!generation) throw new Error('Missing workspace generation');
-const report=await rpc('tools/call',{name:'demo_analysis_query',arguments:{expectedGeneration:generation,filter:{pageSize:1}}});
+const report=await rpc('tools/call',{name:'analysis_query',arguments:{expectedGeneration:generation,filter:{pageSize:1,dataSource:"historical-fixtures"}}});
 if(report.structuredContent?.dataSource!=='historical-fixtures' || report.structuredContent?.report?.items?.length!==1) throw new Error('Unexpected analysis result');
 console.log(`PASS: OAuth discovery, ${listed.tools.length} authorized tools, bound workspace, read-only historical analysis. No business mutations executed.`);

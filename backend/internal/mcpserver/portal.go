@@ -180,7 +180,7 @@ func (p *Portal) login(w http.ResponseWriter, r *http.Request, oauth bool) {
 		p.page(w, 401, portalView{Message: "用户名或密码错误，请重新登录。"})
 		return
 	}
-	client, scope := "demo-portal", "context:read directory:read reports:read"
+	client, scope := "demo-portal", strings.Join(p.MCP.DefaultScopes(), " ")
 	if oauth {
 		client = f.Grant.ClientID
 		scope = f.Grant.Scope

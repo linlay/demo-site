@@ -185,7 +185,7 @@ func (s *Store) ResetFor(ctx context.Context, access model.Access, expected, req
 		return view, model.Failure(409, "session.generation-conflict", "数据已在其他页面重置，请刷新后再操作。")
 	}
 	// Delete children first. All reset work and generation replacement commit together.
-	for _, table := range []string{"demo_jobs", "report_entries", "employees", "departments"} {
+	for _, table := range []string{"business_tasks", "business_history", "business_receipts", "expense_claims", "business_assets", "business_forms", "approval_requests", "approval_materials", "business_initialized", "demo_jobs", "report_entries", "employees", "departments"} {
 		if _, err = tx.ExecContext(ctx, `DELETE FROM `+table+` WHERE session_id=?`, view.ID); err != nil {
 			return view, err
 		}
@@ -208,7 +208,7 @@ func (s *Store) ResetFor(ctx context.Context, access model.Access, expected, req
 		return view, err
 	}
 	if access.Principal != nil {
-		if err = auditMCP(ctx, tx, *access.Principal, view.ID, "demo_reset_execute", "completed", now); err != nil {
+		if err = auditMCP(ctx, tx, *access.Principal, view.ID, "workspace_reset_execute", "completed", now); err != nil {
 			return view, err
 		}
 	}
@@ -217,7 +217,7 @@ func (s *Store) ResetFor(ctx context.Context, access model.Access, expected, req
 		source = "mcp"
 	}
 	view.OperationID = requestID
-	if err = AppendEvent(ctx, tx, &view, "workspace.reset", source, requestID, []string{"session", "reports", "directory", "workspace"}, now); err != nil {
+	if err = AppendEvent(ctx, tx, &view, "workspace.reset", source, requestID, []string{"session", "reports", "directory", "workspace", "todos", "done", "approval", "travel", "expense", "business-analysis"}, now); err != nil {
 		return view, err
 	}
 	return view, tx.Commit()

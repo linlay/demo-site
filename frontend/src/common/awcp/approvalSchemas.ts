@@ -1,5 +1,5 @@
-const ACTOR = { type: 'string', pattern: '^EMP-[0-9]{3}$' };
-const REQUEST = { type: 'string', pattern: '^APPR-[0-9]{3}$' };
+const ACTOR = { type: 'string', pattern: '^EMP-[0-9]{3,}$' };
+const REQUEST = { type: 'string', pattern: '^APPR-[0-9]{3,}$' };
 const KEY = { type: 'string', pattern: '^[A-Za-z0-9_.:-]{1,128}$' };
 const VERSION = { type: 'integer', minimum: 1 };
 const REQUEST_FIELDS = { requestId: REQUEST, actorId: ACTOR };
@@ -19,7 +19,7 @@ export const APPROVAL_SUBMIT_SCHEMA = {
       minItems: 1,
       maxItems: 10,
       uniqueItems: true,
-      items: { type: 'string', pattern: '^APMAT-[0-9]{3}$' }
+      items: { type: 'string', pattern: '^APMAT-[0-9]{3,}$' }
     },
     idempotencyKey: KEY
   }
