@@ -1,11 +1,11 @@
 # singapore02 部署
 
-站点：https://demo-site.zenmind.cc 。当前发布：`4b1410c-demo-site-20261013.1`（基于 `4b1410c` 工作区的项目改名、产品展示名称清理、AWCP 全站主动提供开关及 OAuth 浏览器登录和回调修复）。GitHub 仓库为 [linlay/demo-site](https://github.com/linlay/demo-site)。
+站点：https://demo-site.zenmind.cc 。当前发布：`8651a8d-demo-site-20261013.1`（源码提交 `8651a8d`，已推送至 GitHub main；工作台、审批、差旅费用及分析接入 Go/SQLite，MCP 默认完整授权收敛为 11 个基础工具）。GitHub 仓库为 [linlay/demo-site](https://github.com/linlay/demo-site)。
 
-公网 MCP：`https://demo-site.zenmind.cc/mcp`，支持 OAuth + PKCE 和手动 Bearer Token；默认仅开放四个读取工具，重置工具关闭。登录入口为 `https://demo-site.zenmind.cc/api/v1/mcp/connect`，公开演示用户名和密码为 **demo / demo**。
+公网 MCP：`https://demo-site.zenmind.cc/mcp`，支持 OAuth + PKCE 和手动 Bearer Token；默认完整授权提供 11 个基础工具，显式受限授权按 Scope 显示工具；重置工具关闭。登录入口为 `https://demo-site.zenmind.cc/api/v1/mcp/connect`，公开演示用户名和密码为 **demo / demo**。
 
 - 服务器根目录：`/docker/demo-site`，仅保存发布产物、配置和持久数据，没有 Git 源码检出
-- 构建产物：`releases/4b1410c-demo-site-20261013.1`（后端修复，前端沿用 `.3` 镜像）；Docker 镜像：`demo-site:4b1410c-demo-site-20261013.1`
+- 构建产物：`releases/8651a8d-demo-site-20261013.1`（前后端重新构建，含 release.json 与 deployment-receipt.json）；Docker 镜像：`demo-site:8651a8d-demo-site-20261013.1`
 - Compose：`/docker/demo-site/compose.yaml`；`.env` 指定 `AWCP_RELEASE`
 - 容器：`demo-site-app-1`，自动重启；仅映射 `127.0.0.1:11983:2181`
 - SQLite：`/docker/demo-site/data/awcp.sqlite`，目录归 UID/GID 65532 所有，独立于镜像持久化
@@ -22,7 +22,7 @@
 
 更新前备份 SQLite：优先使用 SQLite 在线 backup API；如采用文件复制，须先停止此应用容器，再复制整个 data 目录（含存在的 WAL/SHM 文件），完成后启动容器。不要只复制运行中的主数据库文件。当前未配置自动备份。
 
-回滚时选择已保留且兼容当前数据库的旧镜像版本，修改 `AWCP_RELEASE` 后重新执行 `docker compose up -d --pull never --no-build`。改名前镜像仍以 `awcp-site:<版本>` 保留，回退使用前须将所选旧镜像标记为 `demo-site:<版本>`。数据库结构变更前必须独立备份；迁移 004、005 已应用，回退较旧二进制需恢复匹配数据库备份，不能只切回旧镜像。
+回滚时选择已保留且兼容当前数据库的旧镜像版本，修改 `AWCP_RELEASE` 后重新执行 `docker compose up -d --pull never --no-build`。改名前镜像仍以 `awcp-site:<版本>` 保留，回退使用前须将所选旧镜像标记为 `demo-site:<版本>`。数据库结构变更前必须独立备份；迁移 004、005、006 已应用，回退不支持迁移 006 的旧二进制需恢复匹配数据库备份，不能只切回旧镜像。
 
 ## 检查
 
@@ -32,6 +32,19 @@ curl -fsS https://demo-site.zenmind.cc/healthz
 ```
 
 当前演示版本未接入 Go 的业务仍使用浏览器 repository，部署并不表示全部业务已经迁移到 SQLite。
+
+## 2026-10-13 提交 8651a8d 全栈发布
+
+实施：用户要求推送并重新部署。使用指定代理将 `a7808ec`、`8651a8d` 推送至 `linlay/demo-site` main，并确认远端 HEAD 为 `8651a8d274803eefb531e499514c73d37b059adc`。从干净工作区构建前端与 Linux/amd64 后端，发布 `demo-site:8651a8d-demo-site-20261013.1`；镜像构建禁用网络并写入源码 revision 标签，没有安装依赖。沿用线上 standard 数据规模、demo 公开登录、关闭的重置工具和既有 Nginx/TLS 配置。
+
+迁移与备份：先在服务器的独立数据库副本和临时容器验证迁移 005→006、24,000 条历史样本的 standard 会话以及新业务 HTTP 查询，副本 `PRAGMA quick_check` 通过；临时容器及副本已清理。正式切换前停止应用，以 SQLite backup API 保存最后一致的数据库及 Compose/.env、Nginx 配置至 `/docker/demo-site/backups/20261013T044653Z-before-8651a8d-business`，`PRAGMA quick_check` 通过。备份包含 69 个空间和 1,656,000 条历史样本。迁移 006 成功，全站 AWCP 设置保留开启／版本 10；未重置演示空间。旧镜像与数据库备份继续保留。
+
+验证：协议、计划及生成目录检查通过；lint、TypeScript、81 个前端测试文件共 204 项测试、完整 Go race 测试及前后端构建通过。隔离本机 SQLite 的业务冒烟通过审批、差旅和费用全流程、11 工具发现、幂等及共享网页状态，OAuth 冒烟也通过。公网首页、分析、导航及 O01/O08/O09 页面 200，HTML／前端主包 SHA-256 与本地产物一致；真实 HTTP demo 登录、默认完整 OAuth／PKCE 兑换、11 工具列表、MCP／网页业务读取、24,000 条历史样本查询、SSE ready 和 15 秒心跳通过。所有公网测试 Token 已逐一撤销并验证返回 401，诊断 OAuth 客户端与授权码已删除；公网没有执行审批、费用办理或空间重置。
+
+发布清单和验收记录保存在 release 目录。旧 `context:read` 连接继续保持受限权限，使用业务能力需申请完整授权；已有完整授权连接重新同步工具列表。迁移 006 后回退至此前 `.1` 镜像需同时恢复匹配备份。本轮未重新完成真实 Desktop WebView 注入验收、完整场景浏览器视觉检查或备份恢复演练。构建仍有主包 841 KiB 体积告警。
+
+- 后端 SHA-256：`5ea71026f08390421b9e86cf33bb57867efeb8bdcd36508b6d1e242499ae8c53`
+- 前端 `assets/main.0ac0774d.js` SHA-256：`6a652b3be9c1236c6465de9a80735ec09d2b002ecb731ee4e50a9ce0658526c9`
 
 ## 2026-10-13 OAuth 浏览器登录与 Desktop 回调修复
 
