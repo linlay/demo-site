@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/model"
 )
 
 const DatasetVersion = "2026-09-30.1"

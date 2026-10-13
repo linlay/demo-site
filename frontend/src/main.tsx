@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 
 import { DemoSessionBoundary } from './app/DemoSessionBoundary';
 import { App } from './app/App';
+import { AwcpSettingsProvider } from './app/AwcpSettingsProvider';
 
 const container = document.getElementById('root');
 
@@ -13,6 +14,6 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <PreferencesProvider><DemoSessionBoundary><App /></DemoSessionBoundary></PreferencesProvider>
+    <PreferencesProvider><DemoSessionBoundary><AwcpSettingsProvider><App /></AwcpSettingsProvider></DemoSessionBoundary></PreferencesProvider>
   </StrictMode>
 );

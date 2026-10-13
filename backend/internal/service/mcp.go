@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/model"
 )
 
 type DirectoryFilter struct {

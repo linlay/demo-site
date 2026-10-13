@@ -1,6 +1,6 @@
 **
 !build/
-!build/awcp-server-linux
+!build/demo-site-server-linux
 !frontend/
 !frontend/dist/
 !frontend/dist/**

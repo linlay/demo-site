@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	"awcp-examples/backend/internal/config"
-	"awcp-examples/backend/internal/handler"
-	"awcp-examples/backend/internal/repository"
-	"awcp-examples/backend/internal/service"
+	"demo-site/backend/internal/config"
+	"demo-site/backend/internal/handler"
+	"demo-site/backend/internal/repository"
+	"demo-site/backend/internal/service"
 )
 
 func main() {

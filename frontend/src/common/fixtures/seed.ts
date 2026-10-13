@@ -161,7 +161,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         ownerId: 'MAIL-001',
         filename: '虚构项目资料.txt',
         mimeType: 'text/plain',
-        content: '仅供 AWCP 演示的虚构项目资料。'
+        content: '仅供 demo-site 使用的虚构项目资料。'
       },
       {
         id: 'MAILAST-002',

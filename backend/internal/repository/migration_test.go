@@ -1,11 +1,11 @@
 package repository_test
 
 import (
-	"awcp-examples/backend/internal/repository"
-	"awcp-examples/backend/migrations"
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"demo-site/backend/internal/repository"
+	"demo-site/backend/migrations"
 	"fmt"
 	"path/filepath"
 	"testing"

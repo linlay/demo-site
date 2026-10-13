@@ -1,9 +1,9 @@
 package service
 
 import (
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/repository"
 	"context"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/repository"
 )
 
 func (s *Sessions) Events(ctx context.Context, token, cursor string) (repository.EventBatch, error) {

@@ -11,7 +11,7 @@ it('queries mail by folder and keyword, reads attachment content, and archives a
     service.query({ actorId: 'EMP-001', folder: 'inbox', keyword: '项目' }).items.map((item) => item.mailId)
   ).toEqual(['MAIL-001']);
   expect(service.readMail({ actorId: 'EMP-001', mailId: 'MAIL-001' }).attachments).toEqual([
-    expect.objectContaining({ id: 'MAILAST-001', content: '仅供 AWCP 演示的虚构项目资料。' })
+    expect.objectContaining({ id: 'MAILAST-001', content: '仅供 demo-site 使用的虚构项目资料。' })
   ]);
   expect(service.validateReadMail({ actorId: 'EMP-002', mailId: 'MAIL-001' })).toEqual([
     expect.objectContaining({ path: ['actorId'] })

@@ -1,3 +1,4 @@
+import { useAwcpSettings } from './awcpSettingsContext';
 import { usePreferences } from '../common/preferences/context';
 import { lazy, Suspense, useState, type ReactElement } from 'react';
 
@@ -56,6 +57,7 @@ const OfficeNewPage = lazy(() => import('../pc/pages/OfficeNewPage'));
 export function App(): ReactElement {
   const { t } = usePreferences();
   const demo = useDemoSession();
+  const awcp = useAwcpSettings();
   const [repository] = useState(() => demo ? createSessionRepository(demo.session, () => {
     if (!demo.api.canWriteSession(demo.session.id, demo.session.generation)) throw new Error('演示空间已变化，请先载入最新数据。');
   }) : createBrowserRepository());
@@ -64,7 +66,7 @@ export function App(): ReactElement {
   const scopeKey = scopeKeyForRoute(route);
 
   return (
-    <AppProviders key={scopeKey} site={siteForRoute(route)} scopeKey={scopeKey}>
+    <AppProviders key={scopeKey} site={siteForRoute(route)} scopeKey={scopeKey} exposeAwcp={awcp.settings?.activeEnabled === true}>
       <AppShell navigate={navigate} repository={repository}>
         <Suspense fallback={<p role="status">{t("正在加载场景…")}</p>}>
           {route.kind === 'analysis' && <AnalysisPage />}

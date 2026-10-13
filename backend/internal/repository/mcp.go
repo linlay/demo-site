@@ -7,7 +7,7 @@ import (
 	"errors"
 	"time"
 
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/model"
 )
 
 func auditMCP(ctx context.Context, tx *sql.Tx, p model.Principal, sessionID, operation, outcome string, now time.Time) error {

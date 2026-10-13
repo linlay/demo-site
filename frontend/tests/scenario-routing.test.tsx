@@ -4,6 +4,8 @@ import { act } from 'react-dom/test-utils';
 import { expect, it } from 'vitest';
 
 import { App } from '../src/app/App';
+import { AwcpSettingsContext } from '../src/app/awcpSettingsContext';
+import { AwcpSettingsService } from '../src/pc/service/awcpSettingsService';
 import { SCENARIOS } from '../src/common/scenarios/catalog';
 import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 
@@ -22,6 +24,9 @@ it('resolves list, typed creation and independent object routes', () => {
 it('only exposes the current page actions after navigation', async () => {
   const priorUrl = window.location.href;
   const priorApi = window.awcp;
+  const settings = { activeEnabled: true, version: 1 };
+  const exposure = new AwcpSettingsService({ awcpSettings: async () => settings, updateAwcpSettings: async () => settings });
+  await exposure.refresh();
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);
@@ -37,7 +42,7 @@ it('only exposes the current page actions after navigation', async () => {
   };
   try {
     window.history.replaceState(null, '', '/');
-    await act(async () => root.render(<StrictMode><App /></StrictMode>));
+    await act(async () => root.render(<StrictMode><AwcpSettingsContext.Provider value={exposure}><App /></AwcpSettingsContext.Provider></StrictMode>));
     const list = await open('/scenes/O03');
     expect(container.textContent).toContain('已有事项');
     expect(list.sections).toHaveLength(0);

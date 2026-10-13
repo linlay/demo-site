@@ -1,38 +1,100 @@
 # singapore02 部署
 
-站点：https://awcp-site.zenmind.cc 。当前发布：`1e76cf2`（SSE 实时同步，源码已提交并推送到 origin/main）。
+站点：https://demo-site.zenmind.cc 。当前发布：`4b1410c-demo-site-20261013.1`（基于 `4b1410c` 工作区的项目改名、产品展示名称清理、AWCP 全站主动提供开关及 OAuth 浏览器登录和回调修复）。GitHub 仓库为 [linlay/demo-site](https://github.com/linlay/demo-site)。
 
-当前公网 MCP 已启用：`https://awcp-site.zenmind.cc/mcp`，支持 OAuth + PKCE 和手动 Bearer Token；默认仅开放四个读取工具，重置工具关闭。登录入口为 `https://awcp-site.zenmind.cc/api/v1/mcp/connect`。
+公网 MCP：`https://demo-site.zenmind.cc/mcp`，支持 OAuth + PKCE 和手动 Bearer Token；默认仅开放四个读取工具，重置工具关闭。登录入口为 `https://demo-site.zenmind.cc/api/v1/mcp/connect`，公开演示用户名和密码为 **demo / demo**。
 
-当前为公开演示登录模式：用户名 **demo**、密码 **demo**，连接页与 OAuth 授权登录页直接展示这组演示凭据。
+- 服务器根目录：`/docker/demo-site`，仅保存发布产物、配置和持久数据，没有 Git 源码检出
+- 构建产物：`releases/4b1410c-demo-site-20261013.1`（后端修复，前端沿用 `.3` 镜像）；Docker 镜像：`demo-site:4b1410c-demo-site-20261013.1`
+- Compose：`/docker/demo-site/compose.yaml`；`.env` 指定 `AWCP_RELEASE`
+- 容器：`demo-site-app-1`，自动重启；仅映射 `127.0.0.1:11983:2181`
+- SQLite：`/docker/demo-site/data/awcp.sqlite`，目录归 UID/GID 65532 所有，独立于镜像持久化
+- Nginx：`/etc/nginx/sites-available/demo-site.zenmind.cc.conf`，由 sites-enabled 同名链接启用
+- TLS：`/etc/letsencrypt/live/demo-site.zenmind.cc`；webroot 为 `/var/www/demo-site`，证书到期日为 2027-01-10
+- Certbot：沿用自动续期计时器；部署钩子为 `/etc/letsencrypt/renewal-hooks/deploy/demo-site-reload-nginx`
+- 旧域名 `awcp-site.zenmind.cc`：已退役；用户已删除 DNS，服务器上的 Nginx 站点、证书及私钥、续期配置和 ACME webroot 已删除
 
-- 服务器根目录：`/docker/awcp-site`
-- 构建产物：`releases/1e76cf2`；Docker 镜像：`awcp-site:1e76cf2`
-- Compose：`/docker/awcp-site/compose.yaml`；`.env` 指定 `AWCP_RELEASE`
-- 容器：`awcp-site-app-1`，自动重启；仅映射 `127.0.0.1:11983:2181`
-- SQLite：`/docker/awcp-site/data/awcp.sqlite`，目录归 UID/GID 65532 所有，独立于镜像持久化
-- Nginx：`/etc/nginx/sites-available/awcp-site.zenmind.cc.conf`，由 sites-enabled 同名链接启用
-- TLS：`/etc/letsencrypt/live/awcp-site.zenmind.cc`；webroot 为 `/var/www/awcp-site`
-- Certbot 自动续期计时器已启用；`/etc/letsencrypt/renewal-hooks/deploy/awcp-site-reload-nginx` 在续期后检查并重载 Nginx
+新域名的 Cookie 和 localStorage 属于独立 origin；浏览器重新建立演示会话，MCP 客户端更新地址并重新授权。旧域名的浏览器存储不会自动迁入新域名。项目改名保留 `AWCP_*` 环境变量、Cookie 名、浏览器存储键及数据库文件名，以兼容现有配置和数据。
 
 ## 更新
 
-依赖必须已按项目约定安装。运行 `pnpm --dir frontend run build` 与 `make build-linux TARGET_ARCH=amd64`，将 Dockerfile、build/awcp-server-linux、frontend/dist 和 deploy/runtime 打包到新版本 release 目录。远端执行 `docker build -t awcp-site:<版本> releases/<版本>`，更新 `.env` 中的 `AWCP_RELEASE` 后执行 `docker compose up -d`。不得覆盖 data 目录。
+依赖必须已按项目约定安装。运行 `pnpm --dir frontend run build` 与 `make build-linux TARGET_ARCH=amd64`，将 Dockerfile、.dockerignore、build/demo-site-server-linux、frontend/dist 和 deploy/runtime 打包到新版本 release 目录。远端执行 `docker build --network=none -t demo-site:<版本> releases/<版本>`，更新 `.env` 中的 `AWCP_RELEASE` 后执行 `docker compose up -d --pull never --no-build`。不得覆盖 data 目录。线上使用 standard 数据规模、公开 demo 登录及关闭的重置工具；不要直接使用模板默认值覆盖线上配置。
 
 更新前备份 SQLite：优先使用 SQLite 在线 backup API；如采用文件复制，须先停止此应用容器，再复制整个 data 目录（含存在的 WAL/SHM 文件），完成后启动容器。不要只复制运行中的主数据库文件。当前未配置自动备份。
 
-回滚时选择已保留且兼容当前数据库的旧镜像版本，修改 `AWCP_RELEASE` 后重新执行 `docker compose up -d`。首部署没有旧版应用可回滚；数据库结构变更前必须独立备份。
+回滚时选择已保留且兼容当前数据库的旧镜像版本，修改 `AWCP_RELEASE` 后重新执行 `docker compose up -d --pull never --no-build`。改名前镜像仍以 `awcp-site:<版本>` 保留，回退使用前须将所选旧镜像标记为 `demo-site:<版本>`。数据库结构变更前必须独立备份；迁移 004、005 已应用，回退较旧二进制需恢复匹配数据库备份，不能只切回旧镜像。
 
 ## 检查
 
 ```sh
-ssh singapore02 'cd /docker/awcp-site && docker compose ps && docker compose logs --tail=50'
-curl -fsS https://awcp-site.zenmind.cc/healthz
+ssh singapore02 'cd /docker/demo-site && docker compose ps && docker compose logs --tail=50'
+curl -fsS https://demo-site.zenmind.cc/healthz
 ```
 
-2026-09-30 实测：Linux/amd64 构建、镜像构建、容器运行、HTTPS 证书校验、HTTP 301 跳转、安全 Cookie、24,000 条样本查询、独立测试会话重置及 SPA 深层地址通过。浏览器已加载线上分析页及四种图表。未执行证书续期 dry-run、备份恢复演练或全部场景的远程验收。
+当前演示版本未接入 Go 的业务仍使用浏览器 repository，部署并不表示全部业务已经迁移到 SQLite。
 
-本次部署的是当前演示版本；未接入 Go 的业务仍使用浏览器 repository，部署并不表示全部业务已经迁移到 SQLite。
+## 2026-10-13 OAuth 浏览器登录与 Desktop 回调修复
+
+原因：登录页的 `Referrer-Policy: no-referrer` 使浏览器原生表单提交携带 `Origin: null`，在密码校验前被 API 来源保护拒绝；修正来源策略后，Chrome 又因 `form-action 'self'` 拦截已登记的本地 OAuth 回调。此前手工设置 Origin 的 HTTP 验证没有覆盖这两项浏览器行为。
+
+实施：MCP 登录页改用 `same-origin`，保持同源表单的真实 Origin；OAuth 授权页的 CSP 仅额外允许当前客户端已验证的回调 origin。来源校验、Cookie 绑定 nonce、一次性授权码、PKCE 及注册回调匹配继续生效，授权重定向保持 `no-referrer`。新增完整 HTTP 中间件回归测试，覆盖外部打开授权页、正常登录、非法来源、跨站提交、缺失 Cookie、nonce 重放及 PKCE 兑换。
+
+部署：发布 `demo-site:4b1410c-demo-site-20261013.1`，使用 `.3` 镜像作为基础，仅替换 Go 二进制，沿用前端资产、配置和持久数据。未增加数据库迁移。发布前在线备份 SQLite 和 Compose/.env 至 `/docker/demo-site/backups/20261013T012833Z-before-oauth-origin-fix`，备份完整性检查通过；旧镜像保留。
+
+验证：完整 Go 测试通过；修复前用独立 Chrome 在公网复现 `Origin: null` 与 403。修复后本地和公网 Chrome 均通过 `demo / demo` 原生表单登录、303 本地回调、state/issuer 绑定、PKCE Token 兑换及认证 MCP initialize；公网测试 Token 撤销后再访问返回 401，空来源与恶意来源仍返回 403。后端本地/服务器 SHA-256 一致：`7de0567b9c52fff968daae5ef0d985c09f4060d4c137d69045320a9d6352af43`。公网健康正常，全站 AWCP 设置沿用。未直接操作用户 Desktop 的授权会话。
+
+旧登录表单的内存 nonce 在容器切换后失效，需从 Desktop 重新发起授权。前端没有变更，本轮未重跑前端测试或构建。
+
+## 2026-10-12 旧域名退役
+
+实施：用户删除 `awcp-site.zenmind.cc` 的 DNS 后，先停用旧域名 Nginx 站点并通过配置检查、重载，再通过 Certbot 删除独立证书及私钥、archive/live 目录和续期配置。已删除旧 ACME 空目录 `/var/www/awcp-site`、服务器根目录下两份闲置旧域名配置，以及本地旧域名跳转模板。新域名的证书、webroot、续期计时器及部署钩子继续保留。
+
+验证：旧资源路径均不存在，Nginx、续期目录、钩子、systemd 和 cron 配置中没有旧域名引用；Nginx 配置检查通过并运行正常。新站首页 HTTP/2 200、HTTPS 健康接口及 AWCP 设置读取通过，新证书到期日仍为 2027-01-10，`certbot.timer` 已启用且运行中。本轮未执行证书续期 dry-run；Nginx 仍有既有的多站点 protocol options 重定义告警。
+
+## 2026-10-12 AWCP 两种提供方式
+
+已发布 `demo-site:4b1410c-demo-site-20261012.3`。Header 的“主动提供 AWCP”开关保存全站状态；开启由网站提供，关闭时网站不主动提供接口，保留 Desktop WebView 自行注入的接口。当前主动提供关闭（设置版本 3）。
+
+实施：迁移 005 新增独立的站点设置表，配置独立于演示空间重置和 MCP。关闭时撤销网站旧接口引用、取消其在途请求，保留普通表单草稿；前端对已打开的可见页面每 15 秒读取设置，并在恢复焦点时同步。
+
+备份：发布前在线备份 SQLite 及 Compose/.env 至 `/docker/demo-site/backups/20261012T065028Z-before-awcp-setting`，完整性检查通过，旧镜像保留。镜像构建禁用网络，不安装依赖。
+
+验证：202 项前端测试、Go 全部测试、协议/计划检查、lint、类型检查和构建通过；本地覆盖 Desktop 先注入、后注入及网站入口撤销时的对象保留。公网初始关闭、开启、跨请求全站一致、过期设置版本拒绝、无 Cookie/错误来源拒绝、服务重启后开启状态保留、恢复关闭、页面路径和静态资源哈希通过。未执行 Desktop 实机注入、浏览器视觉或备份恢复演练；详细实施与验证见 [AWCP 提供方式记录](../docs/awcp-active-progress.md)。
+
+迁移 005 应用后不能仅切回 `.2` 或更早镜像，需先恢复兼容的数据库备份。该次发布时，源码变更尚未提交或推送。
+
+- 后端 SHA-256：`3171fcdb173725643906deae2b058517a7e01672501afe219679fd580e321f2f`
+- 前端 `main.4093b777.js` SHA-256：`6b25a693d765378f9610d6094c2d7bf6ef4d615ebcb6b6f63bae2fff1a89fcb5`
+
+## 2026-10-12 产品展示名称清理
+
+实施：按用户补充的命名要求，产品名称统一为 `demo-site`。加载页和侧栏品牌、浏览器标题、MCP 登录页标题、发现元数据及相关中英文词条已清理旧产品称呼；侧栏说明使用“业务场景”。AWCP 仅保留为协议、接口及技术标识，业务页面的“工作台”名称继续按场景含义使用。命名规则已写入 AGENTS.md。本轮不变更依赖或业务合同。
+
+部署：当前镜像为 `demo-site:4b1410c-demo-site-20261012.2`，此前镜像保留。发布前通过 SQLite 在线 backup API 备份至 `/docker/demo-site/backups/20261012T060312Z-before-branding-cleanup`，并保留 Compose 与 .env；备份完整性检查通过。沿用既有数据卷与 MCP 开关。
+
+验证：lint、TypeScript、77 个前端测试文件共 195 项测试、全部 Go 测试、前端生产构建及 Linux/amd64 构建通过。线上健康接口、`<title>demo-site</title>`、MCP 连接页标题和发现元数据 `resource_name=demo-site MCP` 通过；本地及线上新产物 SHA-256 一致。浏览器工具未能启动，本轮未完成浏览器视觉验收；未重跑 OAuth PKCE 或 SSE 全流程，这些逻辑没有变更。
+
+- 后端 `demo-site-server-linux`：`953ae45de26e2e9f88536a379e66c59979b1fa4c0944a97f3c1e474ecffe6ea6`
+- 前端 `main.8d5b0251.js`：`70e788f0538a597632330f9f0817a1fa0dd10a931b109b044471d26e06e7c446`
+
+## 2026-10-12 项目与域名改名
+
+实施：开始前本地 Git 工作区干净，HEAD 为 `4b1410c`，origin 仍为 `linlay/awcp-examples`；已通过用户指定的代理确认 `linlay/demo-site` 的 main 与本地一致，并更新本地 origin。项目包名、Go 模块及 imports、MCP 服务名、浏览器标题、页面作用域、构建产物及部署模板统一为 `demo-site`。本机目录迁移至 `/Users/linlay/Project/zenmind-servers/demo-site`。保留协议 Action、protocolVersion 1、`manual` / `invoke` / `cancel` 与持久化兼容标识，不变更依赖版本，也不安装依赖。
+
+部署：SQLite 在线备份和原 Compose、.env、Nginx 配置位于 `/docker/demo-site/backups/20261012T052812Z-before-demo-site`，备份完整性检查通过；原目录中的历史 releases、backups 及数据一起迁移，旧镜像保留。停止应用时数据库共有 46 个空间、1,104,000 条历史样本；目录移动前后的主数据库 SHA-256 一致：`18a4bd8f485ee58e4574f73e3bf0b45d9840eed819e4dfb3f0ccc1990e64121b`。未执行数据库迁移或演示空间重置。新镜像仅打包预构建产物，镜像构建禁用网络。
+
+首次切换在 Nginx reload 后立即进行 TLS 校验时遇到旧证书，自动恢复原目录、Compose、容器和 Nginx。独立验证新证书实际加载后再次切换成功。公网复核发现既有 `/navigation` 路由未进入服务端 SPA 白名单，已补齐并扩充已有 HTTP 集成测试。发布修复前再次在线备份至 `/docker/demo-site/backups/20261012T053656Z-before-navigation-fix`，完整性检查通过。
+
+验证：协议与计划静态检查、lint、TypeScript、77 个前端测试文件共 195 项测试、全部 Go 测试、前端生产构建和 Linux/amd64 构建通过；导航修复后重跑全部 Go 测试及 Linux 构建通过。公网 HTTPS 健康接口、页面和静态资源哈希、demo 登录、安全 Cookie、MCP 服务名、四个只读工具、24,000 条历史样本查询、OAuth 发现、动态注册与 PKCE 兑换、SSE ready 和 15 秒心跳、旧域名 308 跳转以及新域名 HTTP 至 HTTPS 跳转通过。测试 Token 均逐一撤销并验证撤销后返回 401。最终导航页直达通过。
+
+最终产物 SHA-256：
+
+- 后端 `demo-site-server-linux`：`7738ccde6c62ad744f68bdfd657b3c70d4bc7eb44281bd23ae8eb085aecaa248`
+- 前端 `main.da0a3059.js`：`eb9ac3cb2936395c004b6c6448058cb5b68cbad7c8d5aa284902fbf419bd68f8`
+
+本轮未执行证书续期 dry-run、备份恢复演练、容量压测或全部 31 场景的浏览器视觉验收。前端构建仍有主包体积告警；Nginx 存在既有的多站点 protocol options 重定义告警。发布包上传曾被自动审批要求明确授权，用户批准后完成上传与部署。
+
+以下记录保留当时的路径、域名和镜像名称；原 `/docker/awcp-site` 下的历史文件已整体移到 `/docker/demo-site`。
 
 ## 2026-10-03 更新
 

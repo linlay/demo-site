@@ -1,6 +1,6 @@
 import { getCurrentAwcpRegistry } from './current';
 import { cloneJsonObject } from './json';
-import type { AwcpBrowserApi, AwcpBrowserInvokeRequest, AwcpManualRequest, AwcpUnregister } from './types';
+import type { AwcpBrowserApi, AwcpBrowserInvokeRequest, AwcpManualRequest, AwcpRegistry, AwcpUnregister } from './types';
 
 declare global {
   interface Window {
@@ -11,9 +11,12 @@ declare global {
 export function exposeCurrentAwcpRegistryToWindow(): AwcpUnregister {
   if (typeof window === 'undefined') return () => undefined;
   const previous = window.awcp;
+  let exposed = true;
+  const requests = new Map<AwcpRegistry, Set<string>>();
   const api: AwcpBrowserApi = Object.freeze({
     protocolVersion: 1 as const,
     manual(request?: AwcpManualRequest) {
+      if (!exposed) throw new Error('AWCP browser interface is disabled.');
       const envelope = assertManualRequest(request);
       const registry = getCurrentAwcpRegistry();
       if (!registry) throw new Error('No current AWCP registry is available.');
@@ -21,27 +24,39 @@ export function exposeCurrentAwcpRegistryToWindow(): AwcpUnregister {
     },
     invoke(request: AwcpBrowserInvokeRequest) {
       try {
+        if (!exposed) throw new Error('AWCP browser interface is disabled.');
         const envelope = assertInvokeRequest(request);
         const registry = getCurrentAwcpRegistry();
         if (!registry) return Promise.reject(new Error('No current AWCP registry is available.'));
-        return registry.invoke(envelope.action, envelope.args, {
+        const result = registry.invoke(envelope.action, envelope.args, {
           requestId: envelope.requestId,
           revision: envelope.revision
+        });
+        const active = requests.get(registry) ?? new Set<string>();
+        if (active.has(envelope.requestId)) return result;
+        requests.set(registry, active);
+        active.add(envelope.requestId);
+        return result.finally(() => {
+          active.delete(envelope.requestId);
+          if (active.size === 0) requests.delete(registry);
         });
       } catch (error) {
         return Promise.reject(error);
       }
     },
     cancel(requestId: string) {
-      return getCurrentAwcpRegistry()?.cancel(requestId) ?? false;
+      return exposed ? (getCurrentAwcpRegistry()?.cancel(requestId) ?? false) : false;
     }
   });
   window.awcp = api;
 
-  let exposed = true;
   return () => {
     if (!exposed) return;
     exposed = false;
+    for (const [registry, active] of requests) {
+      for (const requestId of active) registry.cancel(requestId);
+    }
+    requests.clear();
     if (window.awcp !== api) return;
     if (previous) window.awcp = previous;
     else delete window.awcp;

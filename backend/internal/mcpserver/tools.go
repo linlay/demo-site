@@ -6,8 +6,8 @@ import (
 	"errors"
 	"time"
 
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/service"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/service"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

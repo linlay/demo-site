@@ -2,7 +2,7 @@
 
 ## 定位
 
-基于虚构证券办公业务验证 AWCP 的示例应用。31 个既有场景的完整后端迁移是目标，目前仅完成基础代码；实际实施与验证状态见 `plans/fullstack/README.md` 和 `docs/fullstack-progress.md`。
+`demo-site` 提供基于虚构数据的证券办公业务场景演示，并支持 AWCP 浏览器协议。AWCP 仅作为协议与技术标识，不作为产品品牌。31 个既有场景的完整后端迁移是目标，目前仅完成基础代码；实际实施与验证状态见 `plans/fullstack/README.md` 和 `docs/fullstack-progress.md`。
 
 ## 目录及职责
 

@@ -5,7 +5,7 @@ import ScenarioCatalogPage from '../src/pc/pages/ScenarioCatalogPage';
 import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 
 it('opens the workbench at home and keeps the complete searchable directory at /navigation', async () => {
-  expect(scopeKeyForRoute(resolveRoute('/'))).toBe('awcp-examples.scene.O01');
+  expect(scopeKeyForRoute(resolveRoute('/'))).toBe('demo-site.scene.O01');
   expect(resolveRoute('/navigation').kind).toBe('catalog');
   const container = document.createElement('div');
   const root = createRoot(container);

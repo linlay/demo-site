@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "AWCP Demo HTTP API",
+    "title": "demo-site HTTP API",
     "version": "0.1.0",
     "description": "Foundation phase. Business O/S command APIs are not yet migrated. AWCP protocol remains in the browser."
   },
@@ -302,6 +302,113 @@
           },
           "403": {
             "description": "Cross-origin request denied"
+          }
+        }
+      }
+    },
+    "/api/v1/settings/awcp": {
+      "get": {
+        "operationId": "getAwcpSettings",
+        "description": "Read the site-wide active browser exposure setting. Default is disabled.",
+        "responses": {
+          "200": {
+            "description": "Current site setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwcpSettings"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "updateAwcpSettings",
+        "description": "Change active exposure for all visitors with a valid demo session, current generation, trusted Origin and expected settings version. Independent from workspace resets and MCP.",
+        "security": [
+          {
+            "demoCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Demo-Generation",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AwcpSettingsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwcpSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session missing or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale generation or settings version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -767,6 +874,40 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "AwcpSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "activeEnabled",
+          "version"
+        ],
+        "properties": {
+          "activeEnabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "AwcpSettingsInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "activeEnabled",
+          "expectedVersion"
+        ],
+        "properties": {
+          "activeEnabled": {
+            "type": "boolean"
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
           }
         }
       }

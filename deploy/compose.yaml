@@ -1,7 +1,7 @@
-name: awcp-site
+name: demo-site
 services:
   app:
-    image: awcp-site:${AWCP_RELEASE:?Set AWCP_RELEASE to the deployed commit}
+    image: demo-site:${AWCP_RELEASE:?Set AWCP_RELEASE to the deployed commit}
     restart: unless-stopped
     ports:
       - "127.0.0.1:11983:2181"
@@ -9,11 +9,11 @@ services:
       AWCP_LISTEN: "0.0.0.0:2181"
       AWCP_DATABASE: /data/awcp.sqlite
       AWCP_STATIC_DIR: /app/web
-      AWCP_ALLOWED_ORIGINS: https://awcp-site.zenmind.cc
+      AWCP_ALLOWED_ORIGINS: https://demo-site.zenmind.cc
       AWCP_SECURE_COOKIE: "true"
       AWCP_DATA_PROFILE: ${AWCP_DATA_PROFILE:-acceptance}
       AWCP_MCP_ENABLED: ${AWCP_MCP_ENABLED:-false}
-      AWCP_MCP_PUBLIC_URL: https://awcp-site.zenmind.cc/mcp
+      AWCP_MCP_PUBLIC_URL: https://demo-site.zenmind.cc/mcp
       AWCP_MCP_USERNAME: ${AWCP_MCP_USERNAME:-demo}
       AWCP_MCP_PASSWORD: ${AWCP_MCP_PASSWORD:-}
       AWCP_MCP_PUBLIC_DEMO_LOGIN: ${AWCP_MCP_PUBLIC_DEMO_LOGIN:-false}

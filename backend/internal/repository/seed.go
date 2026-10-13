@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/model"
 )
 
 func seedSession(ctx context.Context, tx *sql.Tx, s model.Session) error {

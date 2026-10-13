@@ -12,11 +12,11 @@ import (
 	"strings"
 	"testing"
 
-	"awcp-examples/backend/internal/config"
-	"awcp-examples/backend/internal/handler"
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/repository"
-	"awcp-examples/backend/internal/service"
+	"demo-site/backend/internal/config"
+	"demo-site/backend/internal/handler"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/repository"
+	"demo-site/backend/internal/service"
 )
 
 func TestHTTPSessionOriginResetAndSPAFallback(t *testing.T) {
@@ -86,7 +86,7 @@ func TestHTTPSessionOriginResetAndSPAFallback(t *testing.T) {
 	if stale.Code != 409 {
 		t.Fatalf("stale generation accepted: %d", stale.Code)
 	}
-	for path, want := range map[string]int{"/healthz": 200, "/analysis": 200, "/scenes/O08/objects/APP-001": 200, "/assets/missing.js": 404, "/api/v1/unknown": 404, "/unknown": 404} {
+	for path, want := range map[string]int{"/healthz": 200, "/analysis": 200, "/navigation": 200, "/scenes/O08/objects/APP-001": 200, "/assets/missing.js": 404, "/api/v1/unknown": 404, "/unknown": 404} {
 		response := call("GET", path, "", "", "", nil)
 		if response.Code != want {
 			t.Fatalf("%s: want %d got %d", path, want, response.Code)

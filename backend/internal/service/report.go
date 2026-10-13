@@ -1,7 +1,7 @@
 package service
 
 import (
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/model"
 	"regexp"
 	"slices"
 	"time"

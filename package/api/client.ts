@@ -1,4 +1,4 @@
-import type { ApiFailure, DemoSession, ReportFilter, ReportResult } from './types';
+import type { ApiFailure, AwcpSettings, DemoSession, ReportFilter, ReportResult } from './types';
 
 export class ApiError extends Error {
   constructor(readonly status: number, readonly failure: ApiFailure) {
@@ -47,6 +47,15 @@ export class DemoApi {
     return this.sessionRequest.then((session) => { if (adopt) this.adoptSession(session); return session; });
   }
 
+  awcpSettings(): Promise<AwcpSettings> {
+    return this.request<AwcpSettings>('/settings/awcp', 'GET', undefined, undefined, '');
+  }
+
+  updateAwcpSettings(activeEnabled: boolean, expectedVersion: number): Promise<AwcpSettings> {
+    if (this.blocked) return Promise.reject(new ApiError(409, { code: 'session.generation-conflict', message: '演示空间已变化，请先载入最新数据。' }));
+    return this.request<AwcpSettings>('/settings/awcp', 'POST', { activeEnabled, expectedVersion });
+  }
+
   async reset(): Promise<DemoSession> {
     if (this.blocked) throw new ApiError(409, { code: 'session.generation-conflict', message: '演示空间已变化，请先载入最新数据。' });
     if (!this.resetAttempt) this.resetAttempt = { generation: this.generation, requestId: crypto.randomUUID() };
@@ -90,7 +99,7 @@ export class DemoApi {
       if (!response.ok) throw new ApiError(response.status, isFailure(data) ? data : { code: 'server.invalid-response', message: '服务响应格式不正确。' });
       // A transport that cannot cancel must still never deliver an old generation's result.
       if (controller.signal.aborted) throw new DOMException('请求已取消。', 'AbortError');
-      if (path !== '/session' && path !== '/session/reset' && generation !== this.generation) {
+      if (path !== '/session' && path !== '/session/reset' && !(path === '/settings/awcp' && method === 'GET') && generation !== this.generation) {
         throw new ApiError(409, { code: 'session.generation-conflict', message: '演示数据已重置，请重新查询。' });
       }
       return data as T;

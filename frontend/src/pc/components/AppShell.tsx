@@ -24,6 +24,7 @@ import styles from './AppShell.module.css';
 import { AppearanceControls } from './AppearanceControls';
 import { SessionMenu } from './SessionMenu';
 import { McpConnection } from './McpConnection';
+import { AwcpControls } from './AwcpControls';
 import { RealtimeControls } from './RealtimeControls';
 
 export interface AppLinkProps {
@@ -145,11 +146,11 @@ export function AppShell({ children, navigate }: AppShellProps): ReactElement {
       {/* Collapsible Enterprise Sidebar */}
       <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
         <div className={styles.sidebarHeader}>
-          <div className={styles.brandLogo}>星</div>
+          <div className={styles.brandLogo}>D</div>
           {!collapsed && (
             <div className={styles.brandInfo}>
-              <span className={styles.brandTitle}>{t('星澜协同')}</span>
-              <span className={styles.brandSubtitle}>{t('AWCP 业务协同平台')}</span>
+              <span className={styles.brandTitle}>demo-site</span>
+              <span className={styles.brandSubtitle}>{t('业务场景')}</span>
             </div>
           )}
         </div>
@@ -229,6 +230,7 @@ export function AppShell({ children, navigate }: AppShellProps): ReactElement {
               <AppstoreOutlined /> {t('站内导航')}
             </AppLink>
 
+            <AwcpControls />
             <McpConnection />
             <RealtimeControls />
             <AppearanceControls />

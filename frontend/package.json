@@ -2,7 +2,7 @@
   "name": "@app/frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "AWCP 业务协同示例项目",
+  "description": "demo-site 业务协同演示项目",
   "packageManager": "pnpm@10.32.1",
   "engines": {
     "node": ">=22.0.0"

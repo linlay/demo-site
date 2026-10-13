@@ -13,11 +13,11 @@ import (
 	"regexp"
 	"strings"
 
-	"awcp-examples/backend/internal/config"
-	"awcp-examples/backend/internal/mcpserver"
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/repository"
-	"awcp-examples/backend/internal/service"
+	"demo-site/backend/internal/config"
+	"demo-site/backend/internal/mcpserver"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/repository"
+	"demo-site/backend/internal/service"
 )
 
 const cookieName = "awcp_demo"
@@ -35,6 +35,8 @@ func New(sessions *service.Sessions, c config.Config, logger *slog.Logger) http.
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /api/v1/session", s.session)
+	mux.HandleFunc("GET /api/v1/settings/awcp", s.awcpSettings)
+	mux.HandleFunc("POST /api/v1/settings/awcp", s.updateAWCPSettings)
 	mux.HandleFunc("GET /api/v1/events", s.events)
 	mux.HandleFunc("POST /api/v1/session/reset", s.reset)
 	mux.HandleFunc("POST /api/v1/reports/query", s.report)
@@ -212,7 +214,7 @@ func (s *Server) static(w http.ResponseWriter, r *http.Request) {
 		http.FileServer(http.Dir(s.Config.StaticDir)).ServeHTTP(w, r)
 		return
 	}
-	if r.URL.Path != "/" && r.URL.Path != "/analysis" && !scenePath.MatchString(r.URL.Path) {
+	if r.URL.Path != "/" && r.URL.Path != "/analysis" && r.URL.Path != "/navigation" && !scenePath.MatchString(r.URL.Path) {
 		http.NotFound(w, r)
 		return
 	}

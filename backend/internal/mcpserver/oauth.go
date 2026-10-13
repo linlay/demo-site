@@ -11,7 +11,7 @@ import (
 	"slices"
 	"strings"
 
-	"awcp-examples/backend/internal/authn"
+	"demo-site/backend/internal/authn"
 )
 
 func oauthJSON(w http.ResponseWriter, status int, v any) {

@@ -5,7 +5,7 @@ import { expect, it } from 'vitest';
 
 import { App } from '../src/app/App';
 
-it('opens the scene catalog with an empty AWCP manual and restores the bridge on unmount', async () => {
+it('opens the scene catalog as a normal page while AWCP settings are unavailable', async () => {
   const previous = window.awcp;
   const previousUrl = window.location.href;
   const container = document.createElement('div');
@@ -24,13 +24,7 @@ it('opens the scene catalog with an empty AWCP manual and restores the bridge on
       await import('../src/pc/pages/ScenarioCatalogPage');
     });
 
-    const api = window.awcp;
-    if (!api) throw new Error('AWCP browser bridge was not exposed.');
-    expect(api.protocolVersion).toBe(1);
-    const manual = api.manual();
-    if (!('sections' in manual)) throw new Error('Expected an AWCP manual index.');
-    expect(manual.sections).toEqual([]);
-    expect(manual.revision).not.toBe('');
+    expect(window.awcp).toBe(previous);
     expect(container.textContent).toContain('站内导航');
     expect(container.querySelectorAll('section[aria-label="站内导航"] a[href^="/scenes/"]').length).toBe(31);
   } finally {

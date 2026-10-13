@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"awcp-examples/backend/internal/authn"
-	"awcp-examples/backend/internal/mcpserver"
+	"demo-site/backend/internal/authn"
+	"demo-site/backend/internal/mcpserver"
 )
 
 var noncePattern = regexp.MustCompile(`name="nonce" value="([^"]+)"`)

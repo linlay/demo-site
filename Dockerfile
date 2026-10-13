@@ -3,7 +3,7 @@
 FROM scratch
 COPY --chown=65532:65532 deploy/runtime/data/ /data/
 COPY --chown=65532:65532 deploy/runtime/tmp/ /tmp/
-COPY build/awcp-server-linux /app/awcp-server
+COPY build/demo-site-server-linux /app/demo-site-server
 COPY frontend/dist/ /app/web/
 ENV AWCP_LISTEN=0.0.0.0:2181 \
     AWCP_DATABASE=/data/awcp.sqlite \
@@ -14,4 +14,4 @@ ENV AWCP_LISTEN=0.0.0.0:2181 \
 USER 65532:65532
 EXPOSE 2181
 VOLUME ["/data"]
-ENTRYPOINT ["/app/awcp-server"]
+ENTRYPOINT ["/app/demo-site-server"]

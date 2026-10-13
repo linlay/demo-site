@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/repository"
-	"awcp-examples/backend/internal/service"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/repository"
+	"demo-site/backend/internal/service"
 )
 
 func setup(t *testing.T) (*service.Sessions, *repository.Store) {

@@ -1,13 +1,13 @@
 package handler_test
 
 import (
-	"awcp-examples/backend/internal/config"
-	"awcp-examples/backend/internal/handler"
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/repository"
-	"awcp-examples/backend/internal/service"
 	"bufio"
 	"context"
+	"demo-site/backend/internal/config"
+	"demo-site/backend/internal/handler"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/repository"
+	"demo-site/backend/internal/service"
 	"encoding/json"
 	"io"
 	"log/slog"

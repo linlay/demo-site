@@ -1,4 +1,4 @@
-module awcp-examples/backend
+module demo-site/backend
 
 go 1.26.0
 

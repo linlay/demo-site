@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"awcp-examples/backend/internal/authn"
+	"demo-site/backend/internal/authn"
 )
 
 type browserFlow struct {
@@ -35,7 +35,7 @@ func NewPortal(h *Handler) *Portal { return &Portal{MCP: h, flows: map[string]br
 const portalCSS = `:root{color-scheme:light dark;font:16px/1.6 system-ui,sans-serif;background:light-dark(#f4f6fa,#111827);color:light-dark(#172033,#e5e7eb)}body{margin:0;padding:32px 16px}main{max-width:780px;margin:auto;padding:32px;border:1px solid light-dark(#d9e0ec,#374151);border-radius:16px;background:light-dark(#fff,#1f2937)}h1{margin:0 0 16px;font-size:28px}h2{font-size:20px}p{overflow-wrap:anywhere}input:not([type=checkbox]),textarea{box-sizing:border-box;width:100%;padding:12px;border:1px solid light-dark(#b9c4d8,#64748b);border-radius:8px;font:14px/1.5 ui-monospace,monospace;background:light-dark(#f8fafc,#111827);color:inherit}button{padding:10px 18px;border:1px solid #4265d6;border-radius:8px;background:#3159d1;color:#fff;font:inherit;cursor:pointer}a{color:light-dark(#3159d1,#a5b4fc)}[role=status]{padding:12px;background:light-dark(#eef3ff,#28334d);border-radius:8px}input[type=checkbox]{width:18px;height:18px;vertical-align:middle}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #819cf0;outline-offset:3px}@media(max-width:600px){main{padding:20px}body{padding:16px 8px}h1{font-size:24px}}`
 
 var portalTemplate = template.Must(template.New("portal").Parse(`<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MCP 连接 · AWCP</title><style>{{.CSS}}</style></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MCP 连接 · demo-site</title><style>{{.CSS}}</style></head>
 <body><main><h1>MCP 连接</h1><p>演示账号登录后获取 Access Token，用于验证 MCP 连接与工具调用。</p>
 {{if .Message}}<p role="status">{{.Message}}</p>{{end}}
 <p><label>MCP 地址 <input readonly value="{{.MCPURL}}"></label></p>
@@ -92,9 +92,20 @@ func (p *Portal) take(key, cookie string) (browserFlow, bool) {
 func (p *Portal) page(w http.ResponseWriter, status int, v portalView) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
-	w.Header().Set("Referrer-Policy", "no-referrer")
+	// no-referrer turns a browser form POST's Origin into "null". Keep the
+	// same-origin Origin for CSRF checks while omitting cross-origin referrers.
+	w.Header().Set("Referrer-Policy", "same-origin")
 	style := sha256.Sum256([]byte(portalCSS))
-	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'sha256-"+base64.StdEncoding.EncodeToString(style[:])+"'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
+	formActions := "'self'"
+	if v.OAuth {
+		// Chromium checks form redirects against form-action as well. The
+		// callback was validated against this client's registered redirect URIs.
+		if callback, err := url.Parse(v.Redirect); err == nil {
+			source := (&url.URL{Scheme: callback.Scheme, Host: callback.Host}).String()
+			formActions += " " + strings.NewReplacer(";", "%3B", "'", "%27").Replace(source)
+		}
+	}
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'sha256-"+base64.StdEncoding.EncodeToString(style[:])+"'; form-action "+formActions+"; frame-ancestors 'none'; base-uri 'none'")
 	v.MCPURL = p.MCP.Config.PublicURL
 	v.CanReset = p.MCP.Config.EnableReset
 	v.PublicDemoLogin = p.MCP.Config.PublicDemoLogin

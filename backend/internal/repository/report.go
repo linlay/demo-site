@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/model"
 )
 
 const metricsSQL = `count(*),coalesce(sum(amount_cents),0),coalesce(sum(status='approved'),0),coalesce(sum(overdue),0),avg(duration_hours)`

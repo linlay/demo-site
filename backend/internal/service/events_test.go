@@ -1,8 +1,8 @@
 package service_test
 
 import (
-	"awcp-examples/backend/internal/repository"
 	"context"
+	"demo-site/backend/internal/repository"
 	"testing"
 	"time"
 )

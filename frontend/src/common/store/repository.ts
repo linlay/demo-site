@@ -3,6 +3,7 @@ import { DemoClock } from '../fixtures/clock';
 import { createSeedState, DEFAULT_DEMO_SEED } from '../fixtures/seed';
 import type { DemoState } from '../fixtures/types';
 
+/** Keep the persisted key so the project rename preserves existing browser demo data. */
 export const DEMO_STORAGE_KEY = 'awcp-examples:v1:repository';
 
 export interface DemoStorage {

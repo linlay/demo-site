@@ -193,7 +193,7 @@ export function DemoSessionBoundary({ children }: PropsWithChildren): ReactEleme
   if (!session)
     return (
       <main className={styles.screen}>
-        <h1>{t('AWCP 演示工作台')}</h1>
+        <h1>demo-site</h1>
         <p role={error ? 'alert' : 'status'}>{error || t('正在准备独立的演示数据…')}</p>
         {error && (
           <button type="button" onClick={() => void refresh()}>

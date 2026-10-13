@@ -75,3 +75,9 @@ export interface ReportResult {
   groups: ({ key: string } & ReportMetrics)[];
   items: ReportEntry[];
 }
+
+/** Site-wide active exposure; independent from MCP and workspace resets. */
+export interface AwcpSettings {
+  activeEnabled: boolean;
+  version: number;
+}

@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"time"
 
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/repository"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/repository"
 )
 
 type Sessions struct {

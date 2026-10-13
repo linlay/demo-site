@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/service"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/service"
 )
 
 func principal(subject string) model.Principal {

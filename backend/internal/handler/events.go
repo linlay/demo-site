@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/model"
 	"encoding/json"
 	"fmt"
 	"net/http"

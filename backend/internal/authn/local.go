@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"awcp-examples/backend/internal/config"
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/config"
+	"demo-site/backend/internal/model"
 )
 
 var ErrInvalidToken = errors.New("invalid access token")

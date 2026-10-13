@@ -13,7 +13,7 @@ build:
 
 build-backend:
 	mkdir -p build
-	cd backend && go build -mod=readonly -o ../build/awcp-server ./cmd/server
+	cd backend && go build -mod=readonly -o ../build/demo-site-server ./cmd/server
 
 test-backend:
 	cd backend && go test -mod=readonly ./...
@@ -29,4 +29,4 @@ dev-backend:
 
 build-linux:
 	mkdir -p build
-	cd backend && CGO_ENABLED=0 GOOS=linux GOARCH=$(TARGET_ARCH) go build -mod=readonly -trimpath -o ../build/awcp-server-linux ./cmd/server
+	cd backend && CGO_ENABLED=0 GOOS=linux GOARCH=$(TARGET_ARCH) go build -mod=readonly -trimpath -o ../build/demo-site-server-linux ./cmd/server

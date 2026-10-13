@@ -12,12 +12,12 @@ import (
 	"strings"
 	"testing"
 
-	"awcp-examples/backend/internal/authn"
-	"awcp-examples/backend/internal/config"
-	"awcp-examples/backend/internal/mcpserver"
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/repository"
-	"awcp-examples/backend/internal/service"
+	"demo-site/backend/internal/authn"
+	"demo-site/backend/internal/config"
+	"demo-site/backend/internal/mcpserver"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/repository"
+	"demo-site/backend/internal/service"
 )
 
 func setup(t *testing.T) (*mcpserver.Handler, *service.Sessions, model.Session) {

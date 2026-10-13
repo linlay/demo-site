@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"awcp-examples/backend/internal/model"
+	"demo-site/backend/internal/model"
 )
 
 func eventCursor(workspace string, revision int64) string {

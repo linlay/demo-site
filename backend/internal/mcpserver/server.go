@@ -14,15 +14,15 @@ import (
 	"sync"
 	"time"
 
-	"awcp-examples/backend/internal/authn"
-	"awcp-examples/backend/internal/config"
-	"awcp-examples/backend/internal/model"
-	"awcp-examples/backend/internal/service"
+	"demo-site/backend/internal/authn"
+	"demo-site/backend/internal/config"
+	"demo-site/backend/internal/model"
+	"demo-site/backend/internal/service"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 // protocolImplementation is shared by every per-request, scope-filtered server.
-var protocolImplementation = &mcp.Implementation{Name: "awcp-examples", Version: "0.2.0"}
+var protocolImplementation = &mcp.Implementation{Name: "demo-site", Version: "0.2.0"}
 
 type verifiedKey struct{}
 type verified struct {
@@ -95,7 +95,7 @@ func (h *Handler) Metadata(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodHead {
 		return
 	}
-	_ = json.NewEncoder(w).Encode(map[string]any{"resource": h.Config.PublicURL, "resource_name": "AWCP 演示业务 MCP", "authorization_servers": []string{h.Config.Issuer}, "scopes_supported": h.Scopes(), "bearer_methods_supported": []string{"header"}})
+	_ = json.NewEncoder(w).Encode(map[string]any{"resource": h.Config.PublicURL, "resource_name": "demo-site MCP", "authorization_servers": []string{h.Config.Issuer}, "scopes_supported": h.Scopes(), "bearer_methods_supported": []string{"header"}})
 }
 
 func (h *Handler) challenge(w http.ResponseWriter, status int, code, scope string) {

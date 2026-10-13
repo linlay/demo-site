@@ -35,10 +35,10 @@ export function resolveRoute(pathname: string): AppRoute {
 }
 
 export function scopeKeyForRoute(route: AppRoute): string {
-  if (route.kind === 'catalog') return 'awcp-examples.catalog';
-  if (route.kind === 'analysis') return 'awcp-examples.analysis';
-  if (route.kind === 'not-found') return 'awcp-examples.not-found';
-  const base = `awcp-examples.scene.${route.scenario.id}`;
+  if (route.kind === 'catalog') return 'demo-site.catalog';
+  if (route.kind === 'analysis') return 'demo-site.analysis';
+  if (route.kind === 'not-found') return 'demo-site.not-found';
+  const base = `demo-site.scene.${route.scenario.id}`;
   if (route.objectId) return `${base}.object.${encodeURIComponent(route.objectId)}`;
   if (route.formType) return `${base}.new.${encodeURIComponent(route.formType)}`;
   return base;

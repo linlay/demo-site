@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"awcp-examples/backend/migrations"
+	"demo-site/backend/migrations"
 	_ "modernc.org/sqlite"
 )
 
