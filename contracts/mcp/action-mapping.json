@@ -46,7 +46,7 @@
     },
     {
       "id": "O08",
-      "title": "通用审批",
+      "title": "审批中心",
       "group": "office",
       "backendStatus": "migrated"
     },
@@ -196,6 +196,7 @@
       "tools": [],
       "status": "pending-domain-migration",
       "sources": [
+        "frontend/src/pc/pages/ServerApprovalCenterPage.tsx",
         "frontend/src/pc/pages/ServerBusinessPage.tsx"
       ]
     },
