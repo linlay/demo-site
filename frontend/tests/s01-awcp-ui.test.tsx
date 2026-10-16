@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import type { AwcpActionResponse, AwcpManualSection, JsonObject } from '@app/awcp';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
@@ -12,12 +13,14 @@ import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 function renderPage(repository: DemoRepository, container: HTMLDivElement) {
   const route = resolveRoute('/scenes/S01');
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-001');
   return {
     root,
+    switchUser: identity.switchUser,
     element: (
-      <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+      <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
         <S01ClientPage repository={repository} />
-      </AppProviders>
+      </AppProviders></identity.Provider>
     )
   };
 }
@@ -194,7 +197,7 @@ it('shares S01 service state with the page controls', async () => {
   const repository = new DemoRepository();
   const container = document.createElement('div');
   document.body.append(container);
-  const { root, element } = renderPage(repository, container);
+  const { root, element, switchUser } = renderPage(repository, container);
   try {
     await act(async () => root.render(element));
     const click = async (label: string) => {
@@ -202,14 +205,7 @@ it('shares S01 service state with the page controls', async () => {
       if (!button) throw new Error(`Missing button: ${label}`);
       await act(async () => button.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     };
-    const reviewer = async () => {
-      const select = container.querySelector<HTMLSelectElement>('#s01-actor');
-      if (!select) throw new Error('Actor selector is missing.');
-      await act(async () => {
-        select.value = 'EMP-004';
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-    };
+    const reviewer = () => switchUser('EMP-004');
     await click('风险评估');
     const product = container.querySelector<HTMLSelectElement>('#s01-product');
     if (!product) throw new Error('Product selector is missing.');

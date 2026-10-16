@@ -1,7 +1,9 @@
 import { riskEnglish } from './riskMessages';
+import { approvalEnglish } from './approvalMessages';
 // UI messages only. Business records and AWCP identifiers retain their original values.
 export const english: Readonly<Record<string, string>> = {
   ...riskEnglish,
+  ...approvalEnglish,
   '主动提供 AWCP': 'Provide AWCP automatically',
   '开启时由网站主动提供 AWCP；关闭后可由 Desktop WebView 注入。设置对整个站点生效。': 'Enable AWCP provided by the website, or disable it to use Desktop WebView injection. Applies to the entire site.',
   'AWCP 设置响应无效，请重试。': 'Invalid AWCP settings response. Retry.',

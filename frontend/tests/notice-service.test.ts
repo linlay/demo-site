@@ -81,7 +81,6 @@ it('blocks incomplete or invalid notices, then publishes after valid recipient r
       'EMP-008',
       'EMP-009',
       'EMP-010',
-      'EMP-011'
     ]
   });
 });

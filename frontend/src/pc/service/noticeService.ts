@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -273,6 +274,8 @@ export class NoticeService {
 }
 
 function draftErrors(state: DemoState, input: NoticeDraftInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = actorErrors(state, input.actorId);
   errors.push(...keyErrors(input.idempotencyKey));
   if (typeof input.title !== 'string' || !input.title.trim() || input.title.trim().length > 120)
@@ -300,6 +303,8 @@ function unreadErrors(state: DemoState, input: NoticeReadInput): AwcpFieldError[
 }
 
 function mutationErrors(state: DemoState, operation: Operation, input: NoticeMutationInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const replayCheck = replayErrors(state, operation, input.idempotencyKey, mutationFingerprint(operation, input));
   if (replayCheck) return replayCheck;
   const errors = readErrors(state, input);

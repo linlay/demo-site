@@ -75,10 +75,7 @@ it('discovers and invokes travel.submit through the real two-level manual and sh
       if (!input || !setter) throw new Error(`Missing field ${selector}`);
       await act(async () => { setter.call(input, value); input.dispatchEvent(new Event('input', { bubbles: true })); });
     };
-    const actor = container.querySelector<HTMLSelectElement>('#travel-actor');
-    const selectSetter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set;
-    if (!actor || !selectSetter) throw new Error('Applicant selector missing.');
-    await act(async () => { selectSetter.call(actor, 'EMP-001'); actor.dispatchEvent(new Event('change', { bubbles: true })); });
+    expect(container.querySelector('#travel-actor')).toBeNull();
     await fill('#travel-origin', '上海');
     await fill('#travel-destination', '北京');
     await fill('#travel-start', '2026-09-24T09:00');

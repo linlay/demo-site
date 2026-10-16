@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -166,6 +167,8 @@ function materialErrors(
   return errors;
 }
 function registerErrors(state: DemoState, input: ContractRegisterInput, currentDay: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'register', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -198,6 +201,8 @@ function sealMaterialErrors(
   return errors;
 }
 function submitErrors(state: DemoState, input: SealSubmitInput, currentDay: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'seal.submit', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -212,6 +217,8 @@ function submitErrors(state: DemoState, input: SealSubmitInput, currentDay: stri
   return [...errors, ...sealMaterialErrors(state, contract, input.materialIds, currentDay)];
 }
 function reviewErrors(state: DemoState, input: SealReviewInput, currentDay: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'approve');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'seal.review', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -236,6 +243,8 @@ function reviewErrors(state: DemoState, input: SealReviewInput, currentDay: stri
   return errors;
 }
 function executeErrors(state: DemoState, input: SealExecuteInput, currentDay: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'seal.execute', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -252,6 +261,8 @@ function executeErrors(state: DemoState, input: SealExecuteInput, currentDay: st
   return errors;
 }
 function renewalErrors(state: DemoState, input: RenewalCreateInput, currentDay: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'renewal.create', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);

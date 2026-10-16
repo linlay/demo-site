@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -172,6 +173,8 @@ export class SheetService {
   }
 
   validatePatch(input: SheetPatchInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.repository.snapshot();
     const errors = [...errorsForActor(state, input.actorId), ...keyErrors(input.idempotencyKey)];
     const fingerprint = patchFingerprint(input);

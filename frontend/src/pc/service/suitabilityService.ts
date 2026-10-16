@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -446,6 +447,8 @@ function checkMutation(
   operation: Operation,
   input: ClientMutationInput
 ): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, ['decide','archive'].includes(operation) ? 'approve' : 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const record = state.idempotencyRecords.find((item) => item.key === input.idempotencyKey);
   if (record) {
     return record.operation === `client.${operation}` && record.fingerprint === mutationFingerprint(operation, input)

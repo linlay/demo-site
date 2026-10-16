@@ -2,6 +2,7 @@ import { addWorkbenchSamples } from '../fixtures/workbenchSeed';
 import { DemoClock } from '../fixtures/clock';
 import { createSeedState, DEFAULT_DEMO_SEED } from '../fixtures/seed';
 import type { DemoState } from '../fixtures/types';
+import { applyWorkflowAccounts } from '../workflow/accounts';
 
 /** Keep the persisted key so the project rename preserves existing browser demo data. */
 export const DEMO_STORAGE_KEY = 'awcp-examples:v1:repository';
@@ -13,6 +14,7 @@ export interface DemoStorage {
 }
 
 export interface DemoRepositoryOptions {
+  workflowProfile?: 'coarse-roles';
   seed?: number;
   clock?: DemoClock;
   storage?: DemoStorage;
@@ -34,8 +36,10 @@ export class DemoRepository {
   private readonly listeners = new Set<() => void>();
   private state: DemoState;
   private readonly assertWritable?: () => void;
+  private readonly workflowProfile?: 'coarse-roles';
 
   constructor(options: DemoRepositoryOptions = {}) {
+    this.workflowProfile = options.workflowProfile;
     this.assertWritable = options.assertWritable;
     this.seed = options.seed ?? DEFAULT_DEMO_SEED;
     this.workbenchSamples = options.workbenchSamples ?? false;
@@ -43,7 +47,16 @@ export class DemoRepository {
     this.initialTime = this.clock.now();
     this.storage = options.storage;
     this.state = this.load() ?? createSeedState(this.seed, this.clock);
+    const roster = createSeedState(this.seed, this.clock).employees;
+    this.state.employees = this.state.employees.map((employee) => {
+      const current = roster.find((entry) => entry.id === employee.id);
+      if (!current) return { ...employee, active: false };
+      const roles: typeof employee.roles = employee.id === 'EMP-004' && !employee.roles.includes('ib-committee') ? [...employee.roles, 'ib-committee'] : employee.roles;
+      return { ...employee, name: employee.name.startsWith('演示') ? current.name : employee.name, active: employee.active && current.active, roles };
+    });
+    if (this.state.company.name === '星澜证券（虚构演示）') this.state.company.name = '星澜证券';
     if (this.workbenchSamples && !this.state.workbenchSampleVersion) addWorkbenchSamples(this.state, this.initialTime);
+    if (this.workflowProfile) applyWorkflowAccounts(this.state);
   }
 
   snapshot(): DemoState {
@@ -69,6 +82,7 @@ export class DemoRepository {
     this.clock.reset();
     this.state = createSeedState(this.seed, this.clock);
     if (this.workbenchSamples) addWorkbenchSamples(this.state, this.initialTime);
+    if (this.workflowProfile) applyWorkflowAccounts(this.state);
     this.notify();
     return this.snapshot();
   }
@@ -77,6 +91,7 @@ export class DemoRepository {
     if (!['S01', 'S02', 'S03', 'S04', 'S05'].includes(scenarioId))
       throw new Error('当前仅支持复位 S01～S05 的所选演示事项。');
     const seed = createSeedState(this.seed, new DemoClock(this.initialTime));
+    if (this.workflowProfile) applyWorkflowAccounts(seed);
     this.transact((draft) => {
       if (scenarioId === 'S01') {
         draft.clientCases = restoreRows(draft.clientCases, seed.clientCases, (row) => row.clientId === objectId);
@@ -445,6 +460,7 @@ export class DemoRepository {
       return {
         ...value,
         schemaVersion: 24,
+        workflowProfile: value.workflowProfile,
         officeTeams,
         contactGroups,
         notices,

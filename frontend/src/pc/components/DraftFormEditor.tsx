@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import { useAwcpAction } from '@app/awcp';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { DataTree } from '@app/ui';
@@ -42,6 +43,7 @@ function inputFromView(view: DraftFormView): DraftFormInput {
 
 export function DraftFormEditor({ service, formId, actionId }: DraftFormEditorProps): ReactElement {
   const [view, setView] = useState(() => service.read(formId));
+  const actorId = useCurrentActor(view.form.applicantId);
   const [input, setInput] = useState(() => inputFromView(view));
   const [message, setMessage] = useState('');
 
@@ -79,7 +81,7 @@ export function DraftFormEditor({ service, formId, actionId }: DraftFormEditorPr
   function save(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     try {
-      const result = service.save(input);
+      const result = service.save({ ...input, actorId });
       setMessage(`已保存 ${result.formId}，业务版本 ${result.businessVersion}。`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存失败。');

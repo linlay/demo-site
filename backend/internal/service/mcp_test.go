@@ -150,8 +150,8 @@ func TestMCPDirectoryPaginatesOnlyOwnFixtures(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := s.MCPDirectory(ctx, p, service.DirectoryFilter{Page: 2, PageSize: 5})
-	if err != nil || len(r.Employees) != 5 || r.Total != 12 {
+	r, err := s.MCPDirectory(ctx, p, service.DirectoryFilter{Page: 2, PageSize: 1})
+	if err != nil || len(r.Employees) != 1 || r.Total != 6 {
 		t.Fatalf("directory: %+v %v", r, err)
 	}
 	_, err = s.MCPDirectory(ctx, p, service.DirectoryFilter{PageSize: 101})

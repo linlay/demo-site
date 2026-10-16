@@ -21,6 +21,17 @@ func (s *Server) business(w http.ResponseWriter, r *http.Request) {
 	var out any
 	var err error
 	switch op {
+	case "approval_templates_list":
+		var in model.GenerationInput
+		if err = s.decodeBusiness(w, r, &in, &in.ExpectedGeneration); err == nil {
+			out, err = s.Sessions.ApprovalTemplates(ctx, a, in)
+		}
+	case "approval_center_query":
+		var in model.ApprovalCenterQuery
+		if err = s.decodeBusiness(w, r, &in, &in.ExpectedGeneration); err == nil {
+			out, err = s.Sessions.ApprovalCenter(ctx, a, in)
+		}
+
 	case "travel_draft_save":
 		var in model.TravelDraft
 		if err = s.decodeBusiness(w, r, &in, &in.ExpectedGeneration); err == nil {

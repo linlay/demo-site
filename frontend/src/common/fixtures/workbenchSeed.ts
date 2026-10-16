@@ -22,12 +22,7 @@ export function addWorkbenchSamples(state: DemoState, now: string): void {
   };
   const hour = 3_600_000;
   const at = (hours: number) => new Date(Date.parse(now) + hours * hour).toISOString();
-  const people = ['演示客户专员林', '演示服务专员陈', '演示运营专员周'];
-  const applicants = people.map((name) => {
-    const id = allocate('EMP');
-    state.employees.push({ id, name, departmentId: 'DEP-001', roles: ['employee'], active: true });
-    return id;
-  });
+  const applicants = ['EMP-001'];
   const titles = [
     '客户交流会物料申请',
     '营业网点设备领用',
@@ -56,7 +51,7 @@ export function addWorkbenchSamples(state: DemoState, now: string): void {
       departmentId: 'DEP-001',
       reviewerId: 'EMP-002',
       title,
-      description: `为第 ${index + 1} 期服务工作申请支持，资料已由经办人整理。虚构演示记录。`,
+      description: `为第 ${index + 1} 期服务工作申请支持，资料已由经办人整理。`,
       materialIds: [returned ? 'APMAT-002' : 'APMAT-001'],
       status,
       businessVersion: open ? 1 : 2,

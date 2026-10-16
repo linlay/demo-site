@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import { useAwcpAction, type AwcpActionRegistration } from '@app/awcp';
 import { useState, type ReactElement } from 'react';
 
@@ -11,7 +12,7 @@ const EXAMPLE: ApprovalSubmitInput = { requestId: null, actorId: 'EMP-001', expe
 
 export default function O08ApprovalNewPage({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new ApprovalService(repository));
-  const [actorId, setActorId] = useState('');
+  const actorId = useCurrentActor('EMP-001');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [materialIds, setMaterialIds] = useState<string[]>([]);
@@ -28,7 +29,7 @@ export default function O08ApprovalNewPage({ repository }: { repository: DemoRep
     catch (error) { setMessage(error instanceof Error ? error.message : '提交失败。'); }
   }
   return <section className={styles.page} aria-label="通用审批申请表单">
-    <label>申请人 <select value={actorId} onChange={(event) => setActorId(event.target.value)} required><option value="">请选择</option>{service.actors().map((actor) => <option key={actor.id} value={actor.id}>{actor.name}（{actor.id}）</option>)}</select></label>
+
     <label>申请标题 <input value={title} onChange={(event) => setTitle(event.target.value)} required /></label>
     <label>申请说明 <textarea value={description} onChange={(event) => setDescription(event.target.value)} required /></label>
     <fieldset><legend>申请资料（至少选择一份）</legend>{service.materials().map((material) => <label key={material.id}><input type="checkbox" checked={materialIds.includes(material.id)} onChange={(event) => setMaterialIds((ids) => event.target.checked ? [...ids, material.id] : ids.filter((id) => id !== material.id))} />{material.name}（{material.id}）</label>)}</fieldset>

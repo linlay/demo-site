@@ -61,12 +61,12 @@ func (h *Handler) addBusinessTools(s *mcp.Server, v verified) {
 	add(h, s, v, "tasks_query", "查询待办或已办", "status=open（默认）查待办，done查已办；可按来源kind、关键词、北京时间日期和分页筛选。日期筛选待办截止日或已办完成日。total为筛选后的总数；汇总可由多次查询和分页明细计算。来源sourceType/sourceId/sourceVersion可用于单步workflow_transition。", object(p, "expectedGeneration", "actorId"), true, func(ctx context.Context, in model.TaskQuery) (model.BusinessPage[model.BusinessTask], error) {
 		return h.Sessions.QueryTasks(ctx, a, in)
 	})
-	add(h, s, v, "records_query", "查询业务单据", "kind选择approval、travel或expense。省略id查分页列表；指定id查单据详情、任务和历史，不可同时传列表筛选。审批结果附可选materials，差旅详情附assets供票据核验或草稿关联。只读查询不会自动办理。", recordsSchema(), true, func(ctx context.Context, in model.RecordQuery) (model.RecordsPage, error) {
+	add(h, s, v, "records_query", "查询业务单据", "kind选择approval、travel或expense。省略id查分页列表；指定id查单据详情、任务和历史，不可同时传列表筛选。审批结果附templates（类型及必填业务字段）和可选materials，差旅详情附assets供票据核验或草稿关联。只读查询不会自动办理。", recordsSchema(), true, func(ctx context.Context, in model.RecordQuery) (model.RecordsPage, error) {
 		return h.Sessions.Records(ctx, a, in)
 	})
 	p = mutationBase()
-	maps.Copy(p, map[string]any{"requestId": map[string]any{"type": []string{"string", "null"}, "maxLength": 64}, "title": textSchema(120), "description": textSchema(2000), "materialIds": arraySchema(textSchema(32), 1, 10)})
-	add(h, s, v, "approval_submit", "提交审批申请", "提交一步申请，不自动审批。新申请requestId=null、expectedVersion=0；退回或撤回申请传原ID和当前版本。materials从records_query(kind=approval)获取。成功创建主管待办，稳定幂等键用于重试。", object(p, "expectedGeneration", "actorId", "expectedVersion", "idempotencyKey", "requestId", "title", "description", "materialIds"), false, func(ctx context.Context, in model.ApprovalSubmit) (model.BusinessResult, error) {
+	maps.Copy(p, map[string]any{"requestId": map[string]any{"type": []string{"string", "null"}, "maxLength": 64}, "title": textSchema(120), "description": textSchema(2000), "materialIds": arraySchema(textSchema(32), 1, 10), "templateId": enum("office", "risk", "investment", "institution", "suitability", "procurement", "seal"), "reviewerId": textSchema(32), "fields": map[string]any{"type": "object", "maxProperties": 10, "additionalProperties": textSchema(300)}})
+	add(h, s, v, "approval_submit", "提交审批申请", "提交一步申请，不自动审批。新申请requestId=null、expectedVersion=0；退回或撤回申请传原ID和当前版本。materials从records_query(kind=approval)获取。templateId和fields按records_query返回的templates填写；可指定其他在职manager为reviewerId。成功创建审批待办，稳定幂等键用于重试。", object(p, "expectedGeneration", "actorId", "expectedVersion", "idempotencyKey", "requestId", "title", "description", "materialIds"), false, func(ctx context.Context, in model.ApprovalSubmit) (model.BusinessResult, error) {
 		return h.Sessions.ApprovalSubmit(ctx, a, in)
 	})
 	p = mutationBase()

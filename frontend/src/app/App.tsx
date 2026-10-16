@@ -11,6 +11,12 @@ import { useBrowserPath } from '../pc/routes/useBrowserPath';
 import { useDemoSession } from '../pc/hooks/useDemoSession';
 import { createSessionRepository } from '../pc/service/sessionRepository';
 import { AppProviders } from './AppProviders';
+import { CurrentUserProvider } from './CurrentUser';
+import { useCurrentActor } from './currentUserContext';
+import { createSeedState } from '../common/fixtures/seed';
+import { PageAccessBoundary } from '../pc/components/PageAccessBoundary';
+import { workflowEmployees } from '../common/workflow/accounts';
+import { AccountActions } from './AccountActions';
 
 const ServerBusinessPage = lazy(() => import('../pc/pages/ServerBusinessPage'));
 const AnalysisPage = lazy(() => import('../pc/pages/AnalysisPage'));
@@ -56,20 +62,27 @@ const O16ReportPage = lazy(() => import('../pc/pages/O16ReportPage'));
 const OfficeNewPage = lazy(() => import('../pc/pages/OfficeNewPage'));
 
 export function App(): ReactElement {
+  const demo = useDemoSession();
+  const [fixtures] = useState(createSeedState);
+  return <CurrentUserProvider key={demo?.session.id ?? 'local'} initialActorId="EMP-001" employees={demo?.session.employees ?? workflowEmployees(fixtures.employees)} departments={demo?.session.departments ?? fixtures.departments} storageKey={`demo-site:current-user:${demo?.session.id ?? 'local'}`}><Application /></CurrentUserProvider>;
+}
+function Application(): ReactElement {
+  const actorId = useCurrentActor();
   const { t } = usePreferences();
   const demo = useDemoSession();
   const awcp = useAwcpSettings();
   const [repository] = useState(() => demo ? createSessionRepository(demo.session, () => {
     if (!demo.api.canWriteSession(demo.session.id, demo.session.generation)) throw new Error('演示空间已变化，请先载入最新数据。');
-  }) : createBrowserRepository());
+  }) : createBrowserRepository({ workflowProfile: 'coarse-roles' }));
   const { pathname, navigate } = useBrowserPath();
   const route = resolveRoute(pathname);
   const scopeKey = scopeKeyForRoute(route);
 
   return (
-    <AppProviders key={scopeKey} site={siteForRoute(route)} scopeKey={scopeKey} exposeAwcp={awcp.settings?.activeEnabled === true}>
-      <AppShell navigate={navigate} repository={repository}>
-        <Suspense fallback={<p role="status">{t("正在加载场景…")}</p>}>
+    <AppProviders key={`${scopeKey}:${actorId}`} site={siteForRoute(route)} scopeKey={scopeKey} exposeAwcp={awcp.settings?.activeEnabled === true}>
+      <AccountActions />
+      <AppShell navigate={navigate} repository={repository} fillContent={route.kind === 'scene' && route.scenario.id === 'O08' && !route.objectId && !route.formType}>
+        <PageAccessBoundary navigate={navigate}><Suspense fallback={<p role="status">{t("正在加载场景…")}</p>}>
           {route.kind === 'analysis' && <AnalysisPage />}
           {route.kind === 'catalog' && <ScenarioCatalogPage navigate={navigate} />}
           {route.kind === 'scene' && demo && ['O01', 'O08', 'O09'].includes(route.scenario.id) && <ServerBusinessPage scene={route.scenario.id as 'O01' | 'O08' | 'O09'} objectId={route.objectId} formType={route.formType} navigate={navigate} />}
@@ -155,7 +168,7 @@ export function App(): ReactElement {
           {route.kind === 'scene' && route.scenario.id === 'P09' && <P09DynamicPage />}
           {route.kind === 'scene' && route.scenario.id === 'P10' && <P10CapacityPage />}
           {route.kind === 'not-found' && <p role="alert">{t("未找到场景，请返回场景目录。")}</p>}
-        </Suspense>
+        </Suspense></PageAccessBoundary>
       </AppShell>
     </AppProviders>
   );

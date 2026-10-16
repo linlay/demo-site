@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -352,6 +353,8 @@ function mailAccessErrors(state: DemoState, input: MailReadInput): AwcpFieldErro
   return errors;
 }
 function archiveErrors(state: DemoState, input: MailArchiveInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = keyAndReplayErrors(state, 'mail.archive', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...mailAccessErrors(state, input));
@@ -362,6 +365,8 @@ function archiveErrors(state: DemoState, input: MailArchiveInput): AwcpFieldErro
   return errors;
 }
 function replyDraftErrors(state: DemoState, input: ReplyDraftInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = keyAndReplayErrors(state, 'mail.reply-draft', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...mailAccessErrors(state, input));
@@ -390,6 +395,8 @@ function replyDraftErrors(state: DemoState, input: ReplyDraftInput): AwcpFieldEr
   return errors;
 }
 function sendErrors(state: DemoState, input: ReplySendInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = keyAndReplayErrors(state, 'mail.send', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...actorErrors(state, input.actorId));
@@ -414,6 +421,8 @@ function sendErrors(state: DemoState, input: ReplySendInput): AwcpFieldError[] {
   return errors;
 }
 function discussionCreateErrors(state: DemoState, input: DiscussionCreateInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = keyAndReplayErrors(state, 'discussion.create', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...actorErrors(state, input.actorId));
@@ -438,6 +447,8 @@ function discussionAccessErrors(state: DemoState, input: DiscussionReadInput): A
   return errors;
 }
 function taskErrors(state: DemoState, input: DiscussionTaskInput, now: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = keyAndReplayErrors(state, 'task.create', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...discussionAccessErrors(state, input));

@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -80,7 +81,7 @@ export default function O14ProjectPage({
   const [service] = useState(() => new ProjectCollabService(repository));
   const [, setRevision] = useState(0);
   useEffect(() => service.subscribe(() => setRevision((value) => value + 1)), [service]);
-  const [actorId, setActorId] = useState('EMP-001');
+  const actorId = useCurrentActor('EMP-001');
   const [projectId] = useState(() => objectId?.startsWith('PRJ-') ? objectId : repository.snapshot().projectTasks.find((item) => item.id === objectId)?.projectId ?? 'PRJ-001');
   const [taskId, setTaskId] = useState(() => objectId?.startsWith('PTASK-') ? objectId : 'PTASK-002');
   const [taskTitle, setTaskTitle] = useState('');
@@ -191,18 +192,7 @@ export default function O14ProjectPage({
 
   return (
     <main className={styles.page}>
-      <label>
-        操作人{' '}
-        <select id="o14-actor" value={actorId} onChange={(e) => setActorId(e.target.value)}>
-          {state.employees
-            .filter((item) => item.active)
-            .map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id} {item.name}
-              </option>
-            ))}
-        </select>
-      </label>
+
       <section>
         <h2>拆解与更新任务</h2>
         <label>

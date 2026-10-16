@@ -12,6 +12,9 @@ export const APPROVAL_SUBMIT_SCHEMA = {
     requestId: { anyOf: [REQUEST, { type: 'null' }] },
     actorId: ACTOR,
     expectedVersion: { anyOf: [VERSION, { type: 'null' }] },
+    templateId: { type: 'string', enum: ['office', 'risk', 'investment', 'institution', 'suitability', 'procurement', 'seal'] },
+    reviewerId: ACTOR,
+    fields: { type: 'object', maxProperties: 10, additionalProperties: { type: 'string', maxLength: 300 } },
     title: { type: 'string', minLength: 1, maxLength: 120 },
     description: { type: 'string', minLength: 1, maxLength: 2000 },
     materialIds: {

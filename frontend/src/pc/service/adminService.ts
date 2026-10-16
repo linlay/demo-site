@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -112,11 +113,14 @@ function actor(state: DemoState, actorId: string): AwcpFieldError[] {
     : [fieldError(['actorId'], '操作人不存在或已离职。')];
 }
 function manager(state: DemoState, actorId: string): AwcpFieldError[] {
+  if (state.workflowProfile === 'coarse-roles' && state.employees.find((employee) => employee.id === actorId)?.roles.includes('workflow-initiator')) return actor(state, actorId);
   return state.employees.find((item) => item.id === actorId)?.roles.includes('manager')
     ? []
     : [fieldError(['actorId'], '仅演示资产管理员可分配设备。')];
 }
 function assignErrors(state: DemoState, input: AssetAssignInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'asset.assign', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = [...actor(state, input.actorId), ...manager(state, input.actorId)];
@@ -131,6 +135,8 @@ function assignErrors(state: DemoState, input: AssetAssignInput): AwcpFieldError
   return errors;
 }
 function returnErrors(state: DemoState, input: AssetReturnInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'asset.return', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -156,6 +162,8 @@ function instant(value: string): number | null {
   return Number.isFinite(time) ? time : null;
 }
 function reserveErrors(state: DemoState, input: ResourceReserveInput, now: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'resource.reserve', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -212,6 +220,8 @@ function reserveErrors(state: DemoState, input: ResourceReserveInput, now: strin
   return errors;
 }
 function resolveErrors(state: DemoState, input: RepairResolveInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'repair.resolve', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -228,6 +238,8 @@ function resolveErrors(state: DemoState, input: RepairResolveInput): AwcpFieldEr
   return errors;
 }
 function acceptErrors(state: DemoState, input: RepairAcceptInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'repair.accept', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);

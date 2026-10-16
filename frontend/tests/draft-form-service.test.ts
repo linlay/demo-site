@@ -24,7 +24,7 @@ it('projects only public table fields and exposes valid IDs through the form and
     id: 'FORM-002',
     kind: 'travel',
     status: 'draft',
-    applicant: '演示员工甲',
+    applicant: '林悦',
     department: '客户服务部',
     amountCents: view.form.amountCents,
     businessVersion: 1

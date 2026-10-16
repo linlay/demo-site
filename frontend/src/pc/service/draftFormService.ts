@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -140,6 +141,8 @@ export class DraftFormService {
 }
 
 function validateDraft(state: DemoState, input: DraftFormInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors: AwcpFieldError[] = [];
   const form = state.forms.find((item) => item.id === input.formId);
   if (!form) errors.push(fieldError(['formId'], '申请单不存在。'));

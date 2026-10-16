@@ -3,6 +3,83 @@ import { expect, it } from 'vitest';
 import { DemoRepository } from '../src/common/store/repository';
 import { RiskAlertService } from '../src/pc/service/riskAlertService';
 
+it('lets investigators claim unassigned alerts for themselves with real audit, idempotency and independent review', () => {
+  const repository = new DemoRepository();
+  repository.transact((state) => {
+    state.employees.find((employee) => employee.id === 'EMP-003')?.roles.push('risk-investigator');
+    state.employees.find((employee) => employee.id === 'EMP-005')?.roles.push('risk-reviewer');
+  });
+  const service = new RiskAlertService(repository);
+  const claim = {
+    actorId: 'EMP-005',
+    alertId: 'RALT-001',
+    assigneeId: 'EMP-005',
+    expectedVersion: 1,
+    idempotencyKey: 'claim-self'
+  };
+  const before = repository.snapshot();
+  expect(() => service.assign({ ...claim, assigneeId: 'EMP-003', idempotencyKey: 'claim-another' })).toThrow(
+    '只能领取本人'
+  );
+  expect(() =>
+    service.assign({ ...claim, actorId: 'EMP-001', assigneeId: 'EMP-001', idempotencyKey: 'claim-wrong-role' })
+  ).toThrow();
+  expect(() => service.assign({ ...claim, expectedVersion: 0, idempotencyKey: 'claim-old-version' })).toThrow(
+    '版本应为'
+  );
+  expect(repository.snapshot()).toEqual(before);
+  expect(service.assign(claim)).toMatchObject({ status: 'investigating', businessVersion: 2 });
+  expect(service.assign(claim)).toMatchObject({ status: 'investigating', businessVersion: 2 });
+  const audit = repository.snapshot().auditEntries.filter((entry) => entry.entityId === 'RALT-001');
+  expect(audit).toHaveLength(1);
+  expect(audit[0]).toMatchObject({
+    actorId: 'EMP-005',
+    action: 'alert.assign',
+    fromStatus: 'new',
+    toStatus: 'investigating'
+  });
+  expect(repository.snapshot().riskAlerts.find((alert) => alert.id === 'RALT-001')?.assigneeId).toBe('EMP-005');
+  expect(() =>
+    service.assign({
+      ...claim,
+      actorId: 'EMP-003',
+      assigneeId: 'EMP-003',
+      expectedVersion: 2,
+      idempotencyKey: 'claim-taken'
+    })
+  ).toThrow();
+  service.record({
+    actorId: 'EMP-005',
+    alertId: 'RALT-001',
+    expectedVersion: 2,
+    idempotencyKey: 'claim-record',
+    evidenceIds: ['REVD-001', 'REVD-002'],
+    analysis: '已核对活动流水和身份材料。',
+    conclusion: 'false-positive',
+    proposedDisposition: 'close'
+  });
+  expect(() =>
+    service.review({
+      actorId: 'EMP-005',
+      alertId: 'RALT-001',
+      expectedVersion: 3,
+      idempotencyKey: 'claim-self-review',
+      decision: 'approve',
+      reason: '同意'
+    })
+  ).toThrow('不能复核自己的结论');
+  expect(
+    service.review({
+      actorId: 'EMP-004',
+      alertId: 'RALT-001',
+      expectedVersion: 3,
+      idempotencyKey: 'claim-independent-review',
+      decision: 'approve',
+      reason: '材料齐全。'
+    })
+  ).toMatchObject({ status: 'approved', businessVersion: 4 });
+});
+
 it('links monitored indicator, complete evidence, investigation, independent review and close history', () => {
   const repository = new DemoRepository();
   const service = new RiskAlertService(repository);

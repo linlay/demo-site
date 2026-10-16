@@ -13,7 +13,7 @@ export function RiskDossierPreview({ draft, employees }: { draft: RiskInvestigat
     normal: '正常',
     abnormal: '异常',
     unconfirmed: '待确认',
-    'false-positive': '演示误报',
+    'false-positive': '误报',
     confirmed: '确认预警',
     close: '关闭',
     escalate: '升级',
@@ -64,7 +64,7 @@ export function RiskDossierPreview({ draft, employees }: { draft: RiskInvestigat
         <table className={styles.readTable}>
           <thead>
             <tr>
-              {['虚构账户', '市场', '证券品种', '业务日期', '方向', '金额（元）', '核查结果', '核查说明'].map((v) => (
+              {['账户编号', '市场', '证券品种', '业务日期', '方向', '金额（元）', '核查结果', '核查说明'].map((v) => (
                 <th key={v}>{t(v)}</th>
               ))}
             </tr>

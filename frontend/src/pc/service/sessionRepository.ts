@@ -18,5 +18,5 @@ export function createSessionRepository(session: DemoSession, assertWritable?: (
       removeItem: (key) => local.removeItem(prefix + key)
     };
   } catch { storage = undefined; }
-  return new DemoRepository({ seed: session.seed, clock: new DemoClock(session.simulatedAt), storage, workbenchSamples: true, assertWritable });
+  return new DemoRepository({ seed: session.seed, clock: new DemoClock(session.simulatedAt), storage, workbenchSamples: true, workflowProfile: 'coarse-roles', assertWritable });
 }

@@ -27,7 +27,8 @@ it('replays the same fictional graph from the same seed and clock', () => {
 
   expect(first).toEqual(second);
   expect(first.forms[0].amountCents).not.toBe(otherSeed.forms[0].amountCents);
-  expect(first.company.name).toContain('虚构');
+  expect(first.company.name).toBe('星澜证券');
+  expect(first.employees.filter((employee) => employee.active)).toHaveLength(10);
 
   const employeeIds = new Set(first.employees.map((employee) => employee.id));
   const departmentIds = new Set(first.departments.map((department) => department.id));

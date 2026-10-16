@@ -66,6 +66,9 @@ func version(actual, expected int) error {
 }
 func role(actor model.Employee, name string) bool { return slices.Contains(actor.Roles, name) }
 func canRead(actor model.Employee, applicant, reviewer string) error {
+	if role(actor, "workflow-approver") || role(actor, "workflow-analyst") {
+		return nil
+	}
 	if actor.ID != applicant && actor.ID != reviewer {
 		return model.Failure(403, "action.forbidden", "只有申请人或指定审批人可以读取此单据。")
 	}
@@ -135,6 +138,9 @@ func (s *Sessions) queryTasks(ctx context.Context, a model.Access, q model.Busin
 		filtered := []model.BusinessTask{}
 		zone := time.FixedZone("Asia/Shanghai", 8*3600)
 		for _, task := range items {
+			if task.AssigneeID != actor.ID {
+				continue
+			}
 			if kind != "" && task.SourceType != kind {
 				continue
 			}
@@ -179,6 +185,9 @@ func (s *Sessions) Workbench(ctx context.Context, a model.Access, q model.Busine
 		out.Generation = b.Session.Generation
 		out.Revision = b.Session.Revision
 		for _, t := range items {
+			if t.AssigneeID != actor.ID {
+				continue
+			}
 			if t.Status == "done" {
 				out.Done++
 			} else {
@@ -239,7 +248,7 @@ func (s *Sessions) ApprovalRead(ctx context.Context, a model.Access, in model.Bu
 		if err != nil {
 			return err
 		}
-		if err = canRead(actor, v.ApplicantID, v.ReviewerID); err != nil {
+		if err = canReadApproval(b, actor, v); err != nil {
 			return err
 		}
 		out.Decisions, err = b.ApprovalDecisions(v.ID)
@@ -249,7 +258,11 @@ func (s *Sessions) ApprovalRead(ctx context.Context, a model.Access, in model.Bu
 		out.Item = v
 		out.Generation = b.Session.Generation
 		out.Revision = b.Session.Revision
-		out.Tasks, err = b.Tasks(model.Employee{ID: v.ReviewerID, DepartmentID: v.DepartmentID}, "", "approval", v.ID)
+		reviewer, err := b.EmployeeReference(v.ReviewerID)
+		if err != nil {
+			return err
+		}
+		out.Tasks, err = b.Tasks(reviewer, "", "approval", v.ID)
 		if err != nil {
 			return err
 		}
@@ -338,15 +351,52 @@ func (s *Sessions) ApprovalSubmit(ctx context.Context, a model.Access, in model.
 			}
 			from = pointer(v.Status)
 		}
-		v.ReviewerID, err = b.Manager(v.DepartmentID, actor.ID)
-		if err != nil {
+		if in.TemplateID == "" {
+			in.TemplateID = v.TemplateID
+		}
+		if in.TemplateID == "" {
+			in.TemplateID = "office"
+		}
+		fields := in.Fields
+		if fields == nil {
+			fields = v.Fields
+		}
+		if fields == nil {
+			fields = map[string]string{}
+		}
+		if v.ID != "" && in.RequestID != nil && v.TemplateID != in.TemplateID {
+			return model.Invalid("templateId", "重新提交时不能更改单据类型。")
+		}
+		if err = validateApprovalFields(in.TemplateID, fields); err != nil {
 			return err
+		}
+		v.TemplateID = in.TemplateID
+		v.Fields = fields
+		if in.ReviewerID != "" {
+			reviewer, e := b.Employee(in.ReviewerID)
+			if e != nil {
+				return e
+			}
+			if reviewer.ID == actor.ID || !role(reviewer, "manager") {
+				return model.Invalid("reviewerId", "请选择其他在职审批负责人。")
+			}
+			v.ReviewerID = reviewer.ID
+		} else {
+			v.ReviewerID, err = b.Manager(v.DepartmentID, actor.ID)
+			if err != nil {
+				return err
+			}
 		}
 		v.Title = strings.TrimSpace(in.Title)
 		v.Description = strings.TrimSpace(in.Description)
 		v.MaterialIDs = in.MaterialIDs
 		v.Status = "submitted"
 		v.BusinessVersion++
+		if from != nil && *from == "returned" {
+			if err = b.CloseCorrection(v.ID, actor.ID); err != nil {
+				return err
+			}
+		}
 		v.CurrentTaskID, err = b.NewTask("approval", v.ID, "审批"+v.Title, v.ReviewerID)
 		if err != nil {
 			return err
@@ -402,8 +452,8 @@ func (s *Sessions) ApprovalDecision(ctx context.Context, a model.Access, in mode
 			if actor.ID != v.ApplicantID {
 				return model.Failure(403, "action.forbidden", "只有申请人可以撤回。")
 			}
-		} else if actor.ID != v.ReviewerID || actor.DepartmentID != v.DepartmentID || !role(actor, "manager") {
-			return model.Failure(403, "action.forbidden", "只有指定同部门主管可以审批。")
+		} else if actor.ID != v.ReviewerID || !role(actor, "manager") {
+			return model.Failure(403, "action.forbidden", "只有指定审批负责人可以审批。")
 		}
 		if err = bounded("opinion", in.Opinion, 200); err != nil {
 			return err
@@ -422,6 +472,11 @@ func (s *Sessions) ApprovalDecision(ctx context.Context, a model.Access, in mode
 		}
 		if err = b.Audit("approval", v.ID, action, actor.ID, pointer("submitted"), v.Status, v.BusinessVersion, strings.TrimSpace(in.Opinion)); err != nil {
 			return err
+		}
+		if action == "return" {
+			if _, err = b.NewTask("approval", v.ID, "补正："+v.Title, v.ApplicantID); err != nil {
+				return err
+			}
 		}
 		out, err = b.CommitResult("approval", op, in.IdempotencyKey, fp, actor.ID, v.ID, v.Status, v.BusinessVersion, nil)
 		return err
@@ -715,7 +770,7 @@ func (s *Sessions) FormDecision(ctx context.Context, a model.Access, in model.Bu
 				return model.Failure(409, "action.invalid-transition", "当前状态不可审批。")
 			}
 			if actor.ID != v.ReviewerID || actor.ID == v.ApplicantID || actor.DepartmentID != v.DepartmentID || !role(actor, "manager") {
-				return model.Failure(403, "action.forbidden", "只有指定同部门主管可以审批。")
+				return model.Failure(403, "action.forbidden", "只有指定审批负责人可以审批。")
 			}
 			if err = bounded("opinion", in.Opinion, 200); err != nil {
 				return err
@@ -1019,6 +1074,9 @@ func (s *Sessions) TodoSummarize(ctx context.Context, a model.Access, in model.T
 		}
 		zone := time.FixedZone("Asia/Shanghai", 8*3600)
 		for _, t := range items {
+			if t.AssigneeID != actor.ID {
+				continue
+			}
 			at := t.DueAt
 			if t.Status == "done" && t.CompletedAt != nil {
 				at = *t.CompletedAt
@@ -1086,6 +1144,9 @@ func (s *Sessions) TravelDraftSave(ctx context.Context, a model.Access, in model
 		if err != nil {
 			return model.Invalid("applicantId", "申请人不存在或停用。")
 		}
+		if !role(applicant, "employee") {
+			return model.Invalid("applicantId", "请选择具有发起与办理职责的账户。")
+		}
 		if applicant.DepartmentID != in.DepartmentID {
 			return model.Invalid("departmentId", "申请人与部门不匹配。")
 		}
@@ -1132,7 +1193,7 @@ func (s *Sessions) TravelDraftSave(ctx context.Context, a model.Access, in model
 }
 
 func approvalRecord(v model.Approval) model.BusinessRecord {
-	return model.BusinessRecord{ID: v.ID, Kind: "approval", ApplicantID: v.ApplicantID, DepartmentID: v.DepartmentID, ReviewerID: v.ReviewerID, Title: v.Title, Status: v.Status, BusinessVersion: v.BusinessVersion, CurrentTaskID: v.CurrentTaskID, CreatedAt: v.CreatedAt, Description: v.Description, MaterialIDs: v.MaterialIDs}
+	return model.BusinessRecord{TemplateID: v.TemplateID, Fields: v.Fields, ID: v.ID, Kind: "approval", ApplicantID: v.ApplicantID, DepartmentID: v.DepartmentID, ReviewerID: v.ReviewerID, Title: v.Title, Status: v.Status, BusinessVersion: v.BusinessVersion, CurrentTaskID: v.CurrentTaskID, CreatedAt: v.CreatedAt, Description: v.Description, MaterialIDs: v.MaterialIDs}
 }
 func formRecord(v model.Form) model.BusinessRecord {
 	return model.BusinessRecord{ID: v.ID, Kind: v.Kind, ApplicantID: v.ApplicantID, DepartmentID: v.DepartmentID, ReviewerID: v.ReviewerID, Status: v.Status, BusinessVersion: v.BusinessVersion, CurrentTaskID: v.CurrentTaskID, CreatedAt: v.CreatedAt, AmountCents: &v.AmountCents}
@@ -1209,14 +1270,22 @@ func (s *Sessions) Records(ctx context.Context, a model.Access, in model.RecordQ
 				}
 				r = expenseRecord(v)
 			}
-			if err = canRead(actor, r.ApplicantID, r.ReviewerID); err != nil {
+			err = canRead(actor, r.ApplicantID, r.ReviewerID)
+			if err != nil && in.Kind == "approval" {
+				err = canReadApproval(b, actor, model.Approval{ID: r.ID, ApplicantID: r.ApplicantID, ReviewerID: r.ReviewerID})
+			}
+			if err != nil {
 				return err
 			}
 			if in.ID == "" && !matches(q, r.Status, r.Title+" "+r.ID) {
 				continue
 			}
 			if in.ID != "" {
-				r.Tasks, err = b.Tasks(model.Employee{ID: r.ReviewerID, DepartmentID: r.DepartmentID}, "", in.Kind, id)
+				reviewer, err := b.EmployeeReference(r.ReviewerID)
+				if err != nil {
+					return err
+				}
+				r.Tasks, err = b.Tasks(reviewer, "", in.Kind, id)
 				if err != nil {
 					return err
 				}
@@ -1255,6 +1324,7 @@ func (s *Sessions) Records(ctx context.Context, a model.Access, in model.RecordQ
 		out.Generation = paged.Generation
 		out.Revision = paged.Revision
 		if in.Kind == "approval" {
+			out.Templates = approvalTemplates()
 			out.Materials, err = b.Materials()
 			if err != nil {
 				return err

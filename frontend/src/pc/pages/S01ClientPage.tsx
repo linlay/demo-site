@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import {
   AuditOutlined,
   CheckCircleOutlined,
@@ -11,7 +12,7 @@ import {
   SolutionOutlined,
   UploadOutlined
 } from '@ant-design/icons';
-import { useAwcpAction } from '@app/awcp';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
@@ -101,7 +102,7 @@ export default function S01ClientPage({
 }): ReactElement {
   const [service] = useState(() => new SuitabilityService(repository));
   const [items, setItems] = useState(() => service.list());
-  const [actorId, setActorId] = useState('EMP-001');
+  const actorId = useCurrentActor('EMP-001');
   const [productId, setProductId] = useState('');
   const [identityDocumentNo, setIdentityDocumentNo] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -113,7 +114,7 @@ export default function S01ClientPage({
   const clientId = items.some((item) => item.clientId === objectId) ? (objectId ?? '') : (items[0]?.clientId ?? '');
   const current = items.find((item) => item.clientId === clientId);
   const actors = service.actors(clientId);
-  const view = current && actors[0] ? service.read({ clientId, actorId: actors[0].id }) : null;
+  const view = current && actors[0] ? service.read({ clientId, actorId }) : null;
 
   useEffect(() => service.subscribe(() => setItems(service.list())), [service]);
   useEffect(() => {
@@ -299,21 +300,8 @@ export default function S01ClientPage({
           <div className={styles.formGrid}>
 
             <div className={styles.formGroup}>
-              <label htmlFor="s01-actor" className={styles.formLabel}>
-                <AuditOutlined /> 当前经办/复核人
-              </label>
-              <select
-                id="s01-actor"
-                className={styles.select}
-                value={actorId}
-                onChange={(event) => setActorId(event.target.value)}
-              >
-                {actors.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}（{item.id}）
-                  </option>
-                ))}
-              </select>
+
+
             </div>
 
             <div className={styles.formGroup}>

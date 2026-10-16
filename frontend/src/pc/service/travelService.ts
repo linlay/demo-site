@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -55,6 +56,8 @@ export class TravelService {
   }
 
   validate(input: TravelSubmitInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.repository.snapshot();
     const replay = state.idempotencyRecords.find((item) => item.key === input.idempotencyKey);
     if (replay) {

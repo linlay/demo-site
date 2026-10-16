@@ -19,7 +19,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
   return {
     schemaVersion: 24,
     seed,
-    company: { id: 'COMP-001', name: '星澜证券（虚构演示）' },
+    company: { id: 'COMP-001', name: '星澜证券' },
     departments: [
       { id: 'DEP-001', name: '客户服务部', parentId: null },
       { id: 'DEP-002', name: '研究部', parentId: null },
@@ -28,57 +28,57 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     employees: [
       {
         id: 'EMP-001',
-        name: '演示员工甲',
+        name: '林悦',
         departmentId: 'DEP-001',
         roles: ['employee', 'institution-sales'],
         active: true
       },
       {
         id: 'EMP-002',
-        name: '演示主管乙',
+        name: '陈明',
         departmentId: 'DEP-001',
         roles: ['employee', 'manager', 'event-organizer'],
         active: true
       },
       {
         id: 'EMP-003',
-        name: '演示分析师丙',
+        name: '王晨',
         departmentId: 'DEP-002',
         roles: ['employee', 'analyst', 'research-service'],
         active: true
       },
       {
         id: 'EMP-004',
-        name: '演示复核员丁',
+        name: '赵敏',
         departmentId: 'DEP-003',
-        roles: ['employee', 'reviewer', 'hr', 'it-coordinator', 'risk-reviewer'],
+        roles: ['employee', 'reviewer', 'hr', 'it-coordinator', 'risk-reviewer', 'ib-committee'],
         active: true
       },
       {
         id: 'EMP-005',
-        name: '演示质审员戊',
+        name: '刘洋',
         departmentId: 'DEP-002',
         roles: ['quality', 'risk-investigator'],
         active: true
       },
       {
         id: 'EMP-006',
-        name: '演示合规员己',
+        name: '周宁',
         departmentId: 'DEP-003',
         roles: ['compliance', 'it-agent', 'risk-monitor'],
         active: true
       },
-      { id: 'EMP-007', name: '演示发布员庚', departmentId: 'DEP-002', roles: ['publisher'], active: true },
-      { id: 'EMP-008', name: '演示投行经理辛', departmentId: 'DEP-003', roles: ['ib-manager'], active: true },
-      { id: 'EMP-009', name: '演示尽调成员壬', departmentId: 'DEP-003', roles: ['ib-member'], active: true },
-      { id: 'EMP-010', name: '演示质控员癸', departmentId: 'DEP-003', roles: ['ib-quality'], active: true },
-      { id: 'EMP-011', name: '演示内核员子', departmentId: 'DEP-003', roles: ['ib-committee'], active: true },
-      { id: 'EMP-012', name: '演示离职人员丑', departmentId: 'DEP-003', roles: ['employee'], active: false }
+      { id: 'EMP-007', name: '徐嘉', departmentId: 'DEP-002', roles: ['publisher'], active: true },
+      { id: 'EMP-008', name: '张远', departmentId: 'DEP-003', roles: ['ib-manager'], active: true },
+      { id: 'EMP-009', name: '李桐', departmentId: 'DEP-003', roles: ['ib-member'], active: true },
+      { id: 'EMP-010', name: '孙岚', departmentId: 'DEP-003', roles: ['ib-quality'], active: true },
+      { id: 'EMP-011', name: '郑航', departmentId: 'DEP-003', roles: ['ib-committee'], active: false },
+      { id: 'EMP-012', name: '何安', departmentId: 'DEP-003', roles: ['employee'], active: false }
     ],
     officeTeams: [
       {
         id: 'TEAM-001',
-        name: '虚构跨部门协作组',
+        name: '跨部门协作组',
         projectId: 'IBP-001',
         ownerId: 'EMP-008',
         memberIds: ['EMP-003', 'EMP-009'],
@@ -88,7 +88,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     contactGroups: [
       {
         id: 'CGROUP-001',
-        name: '虚构项目通讯分组',
+        name: '项目通讯分组',
         ownerId: 'EMP-008',
         memberIds: ['EMP-003', 'EMP-009'],
         businessVersion: 1
@@ -97,8 +97,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     notices: [
       {
         id: 'NTC-001',
-        title: '虚构办公通知草稿',
-        body: '请查阅演示办公安排。',
+        title: '办公通知草稿',
+        body: '请查阅办公安排。',
         authorId: 'EMP-004',
         recipientDepartmentIds: ['DEP-001'],
         status: 'draft',
@@ -107,8 +107,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'NTC-002',
-        title: '虚构研究部通知',
-        body: '这是已发布的虚构通知。',
+        title: '研究部通知',
+        body: '这是已发布的通知。',
         authorId: 'EMP-004',
         recipientDepartmentIds: ['DEP-002'],
         status: 'published',
@@ -136,8 +136,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'MAIL-001',
         senderId: 'EMP-003',
         recipientIds: ['EMP-001'],
-        subject: '虚构项目资料确认',
-        body: '请确认演示项目资料与时间安排。',
+        subject: '项目资料确认',
+        body: '请确认项目资料与时间安排。',
         attachmentIds: ['MAILAST-001'],
         folder: 'inbox',
         businessVersion: 1,
@@ -147,8 +147,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'MAIL-002',
         senderId: 'EMP-004',
         recipientIds: ['EMP-001'],
-        subject: '虚构办公周报',
-        body: '这是供检索演示的第二封邮件。',
+        subject: '办公周报',
+        body: '这是供检索的第二封邮件。',
         attachmentIds: [],
         folder: 'inbox',
         businessVersion: 1,
@@ -159,16 +159,16 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'MAILAST-001',
         ownerId: 'MAIL-001',
-        filename: '虚构项目资料.txt',
+        filename: '项目资料.txt',
         mimeType: 'text/plain',
-        content: '仅供 demo-site 使用的虚构项目资料。'
+        content: '项目资料包含进度计划、联系人及交付清单。'
       },
       {
         id: 'MAILAST-002',
         ownerId: 'REPLY-001',
-        filename: '虚构回执.txt',
+        filename: '回执.txt',
         mimeType: 'text/plain',
-        content: '仅供模拟回复使用的虚构附件。'
+        content: '附件包含本次沟通的问题清单与回复意见。'
       }
     ],
     mailReplies: [
@@ -177,7 +177,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceMailId: 'MAIL-001',
         authorId: 'EMP-001',
         recipientIds: ['EMP-003'],
-        body: '已收到，按演示安排处理。',
+        body: '已收到，按安排处理。',
         attachmentIds: ['MAILAST-002'],
         status: 'draft',
         businessVersion: 1,
@@ -190,19 +190,19 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'DISC-001',
         projectId: 'IBP-001',
         creatorId: 'EMP-008',
-        title: '虚构项目资料讨论',
-        body: '请协作确认演示尽调资料。',
+        title: '项目资料讨论',
+        body: '请协作确认尽调资料。',
         createdAt: now
       }
     ],
     meetingResources: [
-      { id: 'ROOM-001', name: '虚构小会议室', capacity: 4 },
-      { id: 'ROOM-002', name: '虚构多功能会议室', capacity: 8 }
+      { id: 'ROOM-001', name: '小会议室', capacity: 4 },
+      { id: 'ROOM-002', name: '多功能会议室', capacity: 8 }
     ],
     meetings: [
       {
         id: 'MTG-001',
-        title: '虚构客户沟通会',
+        title: '客户沟通会',
         organizerId: 'EMP-001',
         participantIds: ['EMP-001', 'EMP-002'],
         resourceId: 'ROOM-001',
@@ -213,7 +213,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'MTG-002',
-        title: '虚构研究讨论会',
+        title: '研究讨论会',
         organizerId: 'EMP-003',
         participantIds: ['EMP-003', 'EMP-004'],
         resourceId: 'ROOM-002',
@@ -224,7 +224,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'MTG-003',
-        title: '虚构晨会纪要演示',
+        title: '晨会纪要',
         organizerId: 'EMP-003',
         participantIds: ['EMP-003', 'EMP-004'],
         resourceId: 'ROOM-002',
@@ -239,29 +239,29 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     clients: [
       {
         id: 'CLI-001',
-        name: '示例机构客户甲（虚构）',
+        name: '嘉和实业有限公司',
         kind: 'institution',
         managerId: 'EMP-001',
         riskLevel: 3
       },
       {
         id: 'CLI-002',
-        name: '示例个人客户乙（虚构）',
+        name: '顾承安',
         kind: 'individual',
         managerId: 'EMP-001',
         riskLevel: 2
       },
       {
         id: 'CLI-003',
-        name: '示例个人客户丙（虚构）',
+        name: '沈知夏',
         kind: 'individual',
         managerId: 'EMP-001',
         riskLevel: 2
       }
     ],
     products: [
-      { id: 'PRD-001', name: '演示稳健产品甲（虚构）', riskLevel: 2, active: true },
-      { id: 'PRD-002', name: '演示进取产品乙（虚构）', riskLevel: 4, active: true }
+      { id: 'PRD-001', name: '稳盈中短债集合资产管理计划', riskLevel: 2, active: true },
+      { id: 'PRD-002', name: '成长优选混合资产管理计划', riskLevel: 4, active: true }
     ],
     suitabilityPolicy: {
       version: 1,
@@ -302,9 +302,9 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     clientReviews: [],
     researchPolicy: { version: 1, minimumCitations: 1, minimumDisclosures: 1 },
     researchTopics: [
-      { id: 'TOPIC-001', title: '虚构行业观察', analystId: 'EMP-003', createdAt: now },
-      { id: 'TOPIC-002', title: '虚构公司跟踪', analystId: 'EMP-003', createdAt: now },
-      { id: 'TOPIC-003', title: '虚构主题修订', analystId: 'EMP-003', createdAt: now }
+      { id: 'TOPIC-001', title: '行业观察', analystId: 'EMP-003', createdAt: now },
+      { id: 'TOPIC-002', title: '公司跟踪', analystId: 'EMP-003', createdAt: now },
+      { id: 'TOPIC-003', title: '主题修订', analystId: 'EMP-003', createdAt: now }
     ],
     researchReports: [
       {
@@ -340,10 +340,10 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'RVER-001',
         reportId: 'REPORT-001',
         version: 1,
-        title: '虚构行业观察报告',
-        content: '仅使用虚构资料讨论演示行业变化。',
+        title: '行业观察报告',
+        content: '仅使用资料讨论行业变化。',
         citations: ['DEMO-SOURCE-001'],
-        disclosures: ['本报告仅供虚构流程演示。'],
+        disclosures: ['本报告基于公开资料和行业调研编制。'],
         authorId: 'EMP-003',
         createdAt: now
       },
@@ -351,8 +351,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'RVER-002',
         reportId: 'REPORT-002',
         version: 1,
-        title: '虚构公司跟踪报告',
-        content: '待补引用与披露的演示草稿。',
+        title: '公司跟踪报告',
+        content: '待补引用与披露的草稿。',
         citations: [],
         disclosures: [],
         authorId: 'EMP-003',
@@ -362,10 +362,10 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'RVER-003',
         reportId: 'REPORT-003',
         version: 1,
-        title: '虚构主题修订报告',
-        content: '可供演示退回修改的草稿。',
+        title: '主题修订报告',
+        content: '可供退回修改的草稿。',
         citations: ['DEMO-SOURCE-003'],
-        disclosures: ['仅供虚构演示。'],
+        disclosures: ['本报告适用于内部研究交流。'],
         authorId: 'EMP-003',
         createdAt: now
       }
@@ -375,15 +375,15 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     researchPublications: [],
     ibPolicy: { version: 1, requiredWorkpaperKinds: ['financial', 'legal'], blockingSeverity: 'blocking' },
     ibIssuers: [
-      { id: 'ISS-001', name: '虚构发行人甲', industry: '演示制造业' },
-      { id: 'ISS-002', name: '虚构发行人乙', industry: '演示服务业' },
-      { id: 'ISS-003', name: '虚构发行人丙', industry: '演示科技业' }
+      { id: 'ISS-001', name: '远航新材料股份有限公司', industry: '制造业' },
+      { id: 'ISS-002', name: '明德城市服务股份有限公司', industry: '服务业' },
+      { id: 'ISS-003', name: '华辰科技股份有限公司', industry: '科技业' }
     ],
     ibProjects: [
       {
         id: 'IBP-001',
         issuerId: 'ISS-001',
-        title: '虚构甲立项尽调',
+        title: '远航新材公司债立项尽调',
         managerId: 'EMP-008',
         status: 'diligence',
         businessVersion: 1,
@@ -394,7 +394,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'IBP-002',
         issuerId: 'ISS-002',
-        title: '虚构乙资料补齐',
+        title: '明德城服并购项目资料补齐',
         managerId: 'EMP-008',
         status: 'diligence',
         businessVersion: 1,
@@ -405,7 +405,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'IBP-003',
         issuerId: 'ISS-003',
-        title: '虚构丙退回整改',
+        title: '华辰科技再融资项目整改',
         managerId: 'EMP-008',
         status: 'diligence',
         businessVersion: 1,
@@ -463,7 +463,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         kind: 'financial',
         version: 1,
         assetId: 'IBAST-001',
-        summary: '虚构财务底稿甲',
+        summary: '财务底稿甲',
         memberId: 'EMP-009',
         businessVersion: 1,
         submittedAt: now
@@ -474,7 +474,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         kind: 'legal',
         version: 1,
         assetId: 'IBAST-002',
-        summary: '虚构法律底稿甲',
+        summary: '法律底稿甲',
         memberId: 'EMP-009',
         businessVersion: 1,
         submittedAt: now
@@ -485,7 +485,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         kind: 'financial',
         version: 1,
         assetId: 'IBAST-003',
-        summary: '虚构财务底稿乙',
+        summary: '财务底稿乙',
         memberId: 'EMP-009',
         businessVersion: 1,
         submittedAt: now
@@ -496,7 +496,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         kind: 'financial',
         version: 1,
         assetId: 'IBAST-005',
-        summary: '虚构财务底稿丙',
+        summary: '财务底稿丙',
         memberId: 'EMP-009',
         businessVersion: 1,
         submittedAt: now
@@ -507,7 +507,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         kind: 'legal',
         version: 1,
         assetId: 'IBAST-006',
-        summary: '虚构法律底稿丙',
+        summary: '法律底稿丙',
         memberId: 'EMP-009',
         businessVersion: 1,
         submittedAt: now
@@ -518,7 +518,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'IBFIND-001',
         projectId: 'IBP-002',
         severity: 'blocking',
-        description: '演示法律底稿缺失待核对',
+        description: '法律底稿缺失待核对',
         status: 'open',
         openedBy: 'EMP-010',
         openedAt: now,
@@ -575,77 +575,77 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     attachments: [
       {
         assetId: 'AST-001',
-        filename: '演示行程说明.txt',
+        filename: '行程说明.txt',
         mimeType: 'text/plain',
         sizeBytes: 128,
         ownerId: 'FORM-001'
       },
       {
         assetId: 'AST-002',
-        filename: '待关联的演示凭证.txt',
+        filename: '待关联的凭证.txt',
         mimeType: 'text/plain',
         sizeBytes: 64,
         ownerId: ''
       },
       {
         assetId: 'AST-003',
-        filename: '演示交通票据-001.txt',
+        filename: '交通票据-001.txt',
         mimeType: 'text/plain',
         sizeBytes: 96,
         ownerId: 'FORM-001'
       },
       {
         assetId: 'AST-004',
-        filename: '演示住宿票据-002.txt',
+        filename: '住宿票据-002.txt',
         mimeType: 'text/plain',
         sizeBytes: 96,
         ownerId: 'FORM-001'
       },
       {
         assetId: 'IBAST-001',
-        filename: '虚构甲财务底稿.txt',
+        filename: '甲财务底稿.txt',
         mimeType: 'text/plain',
         sizeBytes: 256,
         ownerId: 'IBP-001'
       },
       {
         assetId: 'IBAST-002',
-        filename: '虚构甲法律底稿.txt',
+        filename: '甲法律底稿.txt',
         mimeType: 'text/plain',
         sizeBytes: 256,
         ownerId: 'IBP-001'
       },
       {
         assetId: 'IBAST-003',
-        filename: '虚构乙财务底稿.txt',
+        filename: '乙财务底稿.txt',
         mimeType: 'text/plain',
         sizeBytes: 256,
         ownerId: 'IBP-002'
       },
       {
         assetId: 'IBAST-004',
-        filename: '虚构乙法律底稿.txt',
+        filename: '乙法律底稿.txt',
         mimeType: 'text/plain',
         sizeBytes: 256,
         ownerId: 'IBP-002'
       },
       {
         assetId: 'IBAST-005',
-        filename: '虚构丙财务底稿首版.txt',
+        filename: '丙财务底稿首版.txt',
         mimeType: 'text/plain',
         sizeBytes: 256,
         ownerId: 'IBP-003'
       },
       {
         assetId: 'IBAST-006',
-        filename: '虚构丙法律底稿.txt',
+        filename: '丙法律底稿.txt',
         mimeType: 'text/plain',
         sizeBytes: 256,
         ownerId: 'IBP-003'
       },
       {
         assetId: 'IBAST-007',
-        filename: '虚构丙财务底稿补正版.txt',
+        filename: '丙财务底稿补正版.txt',
         mimeType: 'text/plain',
         sizeBytes: 320,
         ownerId: 'IBP-003'
@@ -656,11 +656,11 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'DOCVER-001',
         documentId: 'DOC-001',
         version: 1,
-        title: '演示办公指引',
-        content: '仅供虚构业务场景演示。',
+        title: '办公指引',
+        content: '本指引用于规范部门日常办公和审批流程。',
         blocks: [
-          { id: 'DBLK-001', kind: 'heading', text: '演示办公指引' },
-          { id: 'DBLK-002', kind: 'paragraph', text: '仅供虚构业务场景演示。' }
+          { id: 'DBLK-001', kind: 'heading', text: '办公指引' },
+          { id: 'DBLK-002', kind: 'paragraph', text: '本指引用于规范部门日常办公和审批流程。' }
         ],
         authorId: 'EMP-003',
         createdAt: now
@@ -669,11 +669,11 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'DOCVER-002',
         documentId: 'DOC-002',
         version: 1,
-        title: '虚构研究资料规范',
-        content: '研究资料只用于流程演示。',
+        title: '研究资料规范',
+        content: '研究资料归档前应完成内容复核和来源核对。',
         blocks: [
-          { id: 'DBLK-001', kind: 'heading', text: '虚构研究资料规范' },
-          { id: 'DBLK-002', kind: 'paragraph', text: '研究资料只用于流程演示。' }
+          { id: 'DBLK-001', kind: 'heading', text: '研究资料规范' },
+          { id: 'DBLK-002', kind: 'paragraph', text: '研究资料归档前应完成内容复核和来源核对。' }
         ],
         authorId: 'EMP-003',
         createdAt: now
@@ -682,7 +682,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     officeDocuments: [
       {
         id: 'DOC-001',
-        source: '虚构办公制度库',
+        source: '办公制度库',
         ownerId: 'EMP-003',
         reviewerId: 'EMP-004',
         currentVersion: 1,
@@ -691,7 +691,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'DOC-002',
-        source: '虚构研究制度库',
+        source: '研究制度库',
         ownerId: 'EMP-003',
         reviewerId: 'EMP-004',
         currentVersion: 1,
@@ -707,7 +707,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'SROW-001',
         departmentId: 'DEP-001',
-        label: '虚构客户资料整理',
+        label: '客户资料整理',
         amountCents: 12000,
         status: 'draft',
         businessVersion: 1
@@ -715,7 +715,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'SROW-002',
         departmentId: 'DEP-002',
-        label: '虚构研究资料复核',
+        label: '研究资料复核',
         amountCents: 8600,
         status: 'confirmed',
         businessVersion: 1
@@ -723,7 +723,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'SROW-003',
         departmentId: 'DEP-001',
-        label: '虚构客户沟通记录',
+        label: '客户沟通记录',
         amountCents: 4500,
         status: 'confirmed',
         businessVersion: 1
@@ -731,7 +731,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'SROW-004',
         departmentId: 'DEP-003',
-        label: '虚构运营档案归整',
+        label: '运营档案归整',
         amountCents: 16800,
         status: 'draft',
         businessVersion: 1
@@ -739,7 +739,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'SROW-005',
         departmentId: 'DEP-002',
-        label: '虚构行业数据整理',
+        label: '行业数据整理',
         amountCents: 7200,
         status: 'draft',
         businessVersion: 1
@@ -748,8 +748,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     sheetExports: [],
     sheetPatchRecords: [],
     officeApprovalMaterials: [
-      { id: 'APMAT-001', name: '虚构采购说明' },
-      { id: 'APMAT-002', name: '虚构补正说明' }
+      { id: 'APMAT-001', name: '采购说明' },
+      { id: 'APMAT-002', name: '补正说明' }
     ],
     officeApprovalRequests: [
       {
@@ -757,8 +757,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         applicantId: 'EMP-001',
         departmentId: 'DEP-001',
         reviewerId: 'EMP-002',
-        title: '虚构办公用品申请',
-        description: '申请演示办公用品。',
+        title: '办公用品申请',
+        description: '申请办公用品。',
         materialIds: ['APMAT-001'],
         status: 'submitted',
         businessVersion: 1,
@@ -770,7 +770,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         applicantId: 'EMP-001',
         departmentId: 'DEP-001',
         reviewerId: 'EMP-002',
-        title: '虚构资料补正申请',
+        title: '资料补正申请',
         description: '待补充说明后重新提交。',
         materialIds: ['APMAT-002'],
         status: 'returned',
@@ -783,8 +783,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         applicantId: 'EMP-001',
         departmentId: 'DEP-001',
         reviewerId: 'EMP-002',
-        title: '虚构已批准申请',
-        description: '用于演示终态限制。',
+        title: '已批准申请',
+        description: '申请材料已经审核完成。',
         materialIds: ['APMAT-001'],
         status: 'approved',
         businessVersion: 2,
@@ -822,21 +822,21 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     leaveRequests: [],
     attendanceCorrections: [],
     personnelMaterials: [
-      { id: 'PMAT-001', name: '虚构身份证明', kind: 'identity' },
-      { id: 'PMAT-002', name: '虚构劳动合同', kind: 'contract' },
-      { id: 'PMAT-003', name: '虚构调动单', kind: 'transfer-order' },
-      { id: 'PMAT-004', name: '虚构岗位审批单', kind: 'role-approval' },
-      { id: 'PMAT-005', name: '虚构离职交接清单', kind: 'exit-checklist' }
+      { id: 'PMAT-001', name: '身份证明', kind: 'identity' },
+      { id: 'PMAT-002', name: '劳动合同', kind: 'contract' },
+      { id: 'PMAT-003', name: '调动单', kind: 'transfer-order' },
+      { id: 'PMAT-004', name: '岗位审批单', kind: 'role-approval' },
+      { id: 'PMAT-005', name: '离职交接清单', kind: 'exit-checklist' }
     ],
     personnelProfiles: [
       { employeeId: 'EMP-001', position: '客户服务专员', businessVersion: 1 },
       { employeeId: 'EMP-003', position: '研究分析师', businessVersion: 1 },
-      { employeeId: 'EMP-012', position: '离职演示人员', businessVersion: 1 }
+      { employeeId: 'EMP-012', position: '离职人员', businessVersion: 1 }
     ],
     personnelChanges: [],
     trainingCourses: [
-      { id: 'TRN-001', title: '虚构合规入门培训', capacity: 2 },
-      { id: 'TRN-002', title: '虚构研究资料培训', capacity: 1 }
+      { id: 'TRN-001', title: '合规入门培训', capacity: 2 },
+      { id: 'TRN-002', title: '研究资料培训', capacity: 1 }
     ],
     trainingEnrollments: [
       {
@@ -852,10 +852,10 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     ],
     hrOperationRecords: [],
     procurementSuppliers: [
-      { id: 'SUP-001', name: '虚构办公物资甲', status: 'approved', businessVersion: 2 },
-      { id: 'SUP-002', name: '虚构办公物资乙', status: 'approved', businessVersion: 2 },
-      { id: 'SUP-003', name: '虚构待审核供应商', status: 'pending', businessVersion: 1 },
-      { id: 'SUP-004', name: '虚构过期证明供应商', status: 'pending', businessVersion: 1 }
+      { id: 'SUP-001', name: '启明办公设备有限公司', status: 'approved', businessVersion: 2 },
+      { id: 'SUP-002', name: '优文商贸有限公司', status: 'approved', businessVersion: 2 },
+      { id: 'SUP-003', name: '待审核供应商', status: 'pending', businessVersion: 1 },
+      { id: 'SUP-004', name: '过期证明供应商', status: 'pending', businessVersion: 1 }
     ],
     supplierProofs: [
       { id: 'SPRF-001', supplierId: 'SUP-001', kind: 'registration', expiresOn: '2027-12-31' },
@@ -871,7 +871,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'PREQ-001',
         requesterId: 'EMP-001',
-        itemName: '虚构笔记本',
+        itemName: '笔记本',
         quantity: 5,
         status: 'draft',
         selectedSupplierId: null,
@@ -883,7 +883,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'PREQ-002',
         requesterId: 'EMP-001',
-        itemName: '虚构办公键盘',
+        itemName: '办公键盘',
         quantity: 4,
         status: 'selected',
         selectedSupplierId: 'SUP-001',
@@ -910,17 +910,17 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     inventoryEntries: [],
     procurementOperationRecords: [],
     contractMaterials: [
-      { id: 'CTMAT-001', name: '虚构合同原件甲', expiresOn: '2027-12-31', contractId: 'CNTR-001' },
-      { id: 'CTMAT-002', name: '虚构已过期授权书', expiresOn: '2026-01-01', contractId: 'CNTR-002' },
-      { id: 'CTMAT-003', name: '虚构待登记合同附件', expiresOn: '2027-12-31', contractId: null },
-      { id: 'CTMAT-004', name: '虚构续签合同附件', expiresOn: '2027-12-31', contractId: null }
+      { id: 'CTMAT-001', name: '设备采购合同原件', expiresOn: '2027-12-31', contractId: 'CNTR-001' },
+      { id: 'CTMAT-002', name: '已过期授权书', expiresOn: '2026-01-01', contractId: 'CNTR-002' },
+      { id: 'CTMAT-003', name: '待登记合同附件', expiresOn: '2027-12-31', contractId: null },
+      { id: 'CTMAT-004', name: '续签合同附件', expiresOn: '2027-12-31', contractId: null }
     ],
     officeContracts: [
       {
         id: 'CNTR-001',
         ownerId: 'EMP-001',
         companyId: 'COMP-001',
-        counterpartyName: '虚构服务商甲',
+        counterpartyName: '云帆信息技术有限公司',
         startDate: '2025-09-26',
         endDate: '2026-09-25',
         amountCents: 120000,
@@ -934,7 +934,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         id: 'CNTR-002',
         ownerId: 'EMP-001',
         companyId: 'COMP-001',
-        counterpartyName: '虚构服务商乙',
+        counterpartyName: '启明办公设备有限公司',
         startDate: '2026-01-01',
         endDate: '2027-12-31',
         amountCents: 80000,
@@ -951,7 +951,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         contractId: 'CNTR-001',
         contractVersion: 1,
         applicantId: 'EMP-001',
-        purpose: '虚构合同签署',
+        purpose: '合同签署',
         materialIds: ['CTMAT-001'],
         status: 'pending',
         reviewerId: null,
@@ -966,11 +966,11 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         contractId: 'CNTR-001',
         contractVersion: 1,
         applicantId: 'EMP-001',
-        purpose: '虚构归档用印',
+        purpose: '归档用印',
         materialIds: ['CTMAT-001'],
         status: 'approved',
         reviewerId: 'EMP-004',
-        decisionNote: '虚构审批通过。',
+        decisionNote: '审批通过。',
         businessVersion: 2,
         submittedAt: now,
         decidedAt: now,
@@ -979,17 +979,17 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     ],
     contractOperationRecords: [],
     adminAssets: [
-      { id: 'EQ-001', name: '虚构办公电脑甲', status: 'available', holderId: null, businessVersion: 1 },
-      { id: 'EQ-002', name: '虚构办公电脑乙', status: 'assigned', holderId: 'EMP-003', businessVersion: 2 },
-      { id: 'EQ-003', name: '虚构待修打印机', status: 'repair', holderId: null, businessVersion: 1 },
-      { id: 'EQ-004', name: '虚构已处理投影仪', status: 'repair', holderId: null, businessVersion: 1 }
+      { id: 'EQ-001', name: '联想办公笔记本 01', status: 'available', holderId: null, businessVersion: 1 },
+      { id: 'EQ-002', name: '联想办公笔记本 02', status: 'assigned', holderId: 'EMP-003', businessVersion: 2 },
+      { id: 'EQ-003', name: '待修打印机', status: 'repair', holderId: null, businessVersion: 1 },
+      { id: 'EQ-004', name: '已处理投影仪', status: 'repair', holderId: null, businessVersion: 1 }
     ],
     assetMovements: [
       { id: 'AMOV-001', assetId: 'EQ-002', holderId: 'EMP-003', actorId: 'EMP-002', action: 'assign', at: now }
     ],
     adminResources: [
-      { id: 'RES-001', name: '虚构行政会议室', kind: 'meeting-room', capacity: 8, authorizedDriverIds: [] },
-      { id: 'RES-002', name: '虚构公务车', kind: 'vehicle', capacity: 4, authorizedDriverIds: ['EMP-002'] }
+      { id: 'RES-001', name: '行政会议室', kind: 'meeting-room', capacity: 8, authorizedDriverIds: [] },
+      { id: 'RES-002', name: '公务车', kind: 'vehicle', capacity: 4, authorizedDriverIds: ['EMP-002'] }
     ],
     resourceReservations: [
       {
@@ -1010,7 +1010,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         assetId: 'EQ-003',
         reporterId: 'EMP-001',
         assigneeId: 'EMP-004',
-        issue: '虚构打印机无法进纸',
+        issue: '打印机无法进纸',
         status: 'open',
         resolution: null,
         businessVersion: 1,
@@ -1022,9 +1022,9 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         assetId: 'EQ-004',
         reporterId: 'EMP-001',
         assigneeId: 'EMP-004',
-        issue: '虚构投影仪画面异常',
+        issue: '投影仪画面异常',
         status: 'resolved',
-        resolution: '已更换虚构连接线。',
+        resolution: '已更换连接线。',
         businessVersion: 2,
         resolvedAt: now,
         acceptedAt: null
@@ -1034,7 +1034,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     officeProjects: [
       {
         id: 'PRJ-001',
-        title: '虚构办公迁移项目',
+        title: '办公迁移项目',
         ownerId: 'EMP-001',
         memberIds: ['EMP-001', 'EMP-002', 'EMP-003'],
         dueDate: '2026-09-30',
@@ -1046,7 +1046,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'PTASK-001',
         projectId: 'PRJ-001',
-        title: '整理虚构需求',
+        title: '整理需求',
         assigneeId: 'EMP-001',
         dueDate: '2026-09-18',
         dependencyIds: [],
@@ -1058,7 +1058,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'PTASK-002',
         projectId: 'PRJ-001',
-        title: '完成虚构界面联调',
+        title: '完成界面联调',
         assigneeId: 'EMP-003',
         dueDate: '2026-09-18',
         dependencyIds: ['PTASK-001'],
@@ -1070,7 +1070,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'PTASK-003',
         projectId: 'PRJ-001',
-        title: '验收虚构演示',
+        title: '验收',
         assigneeId: 'EMP-002',
         dueDate: '2026-09-25',
         dependencyIds: ['PTASK-002'],
@@ -1092,7 +1092,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'PMS-002',
         projectId: 'PRJ-001',
-        title: '演示上线',
+        title: '上线',
         dueDate: '2026-09-25',
         taskIds: ['PTASK-002', 'PTASK-003'],
         businessVersion: 1
@@ -1101,8 +1101,8 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     projectWeeklyReports: [],
     projectOperationRecords: [],
     itSystems: [
-      { id: 'SYS-001', name: '虚构办公系统' },
-      { id: 'SYS-002', name: '虚构研究系统' }
+      { id: 'SYS-001', name: '办公系统' },
+      { id: 'SYS-002', name: '研究系统' }
     ],
     itPermissions: [
       {
@@ -1138,7 +1138,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     itTickets: [
       {
         id: 'TKT-001',
-        title: '虚构办公终端登录异常',
+        title: '办公终端登录异常',
         requesterId: 'EMP-001',
         assigneeId: null,
         status: 'new',
@@ -1151,7 +1151,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'TKT-002',
-        title: '虚构打印服务异常',
+        title: '打印服务异常',
         requesterId: 'EMP-001',
         assigneeId: 'EMP-006',
         status: 'assigned',
@@ -1164,11 +1164,11 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'TKT-003',
-        title: '虚构工作站配置调整',
+        title: '工作站配置调整',
         requesterId: 'EMP-001',
         assigneeId: 'EMP-006',
         status: 'resolved',
-        resolution: '已调整演示配置并验证。',
+        resolution: '已调整配置并验证。',
         acceptanceNote: null,
         businessVersion: 3,
         createdAt: now,
@@ -1203,7 +1203,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         actorId: 'EMP-006',
         fromStatus: 'assigned',
         toStatus: 'resolved',
-        note: '已调整演示配置并验证。',
+        note: '已调整配置并验证。',
         businessVersion: 3,
         at: now
       }
@@ -1227,7 +1227,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
             sourceVersion: 1,
             departmentId: 'DEP-002',
             occurredOn: '2026-09-18',
-            title: '完成虚构界面联调',
+            title: '完成界面联调',
             sourceStatus: 'open',
             anomalyReason: '任务逾期'
           }
@@ -1258,7 +1258,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
                 sourceVersion: 1,
                 departmentId: 'DEP-002',
                 occurredOn: '2026-09-18',
-                title: '完成虚构界面联调',
+                title: '完成界面联调',
                 sourceStatus: 'open',
                 anomalyReason: '任务逾期'
               }
@@ -1284,7 +1284,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'RRULE-001',
         version: 1,
-        name: '虚构客户活动次数',
+        name: '客户活动次数',
         threshold: 3,
         unit: '次/7日',
         requiredEvidenceKinds: ['activity-log', 'identity-check']
@@ -1292,16 +1292,16 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'RRULE-002',
         version: 1,
-        name: '虚构项目指标分值',
+        name: '项目指标分值',
         threshold: 80,
-        unit: '演示分',
+        unit: '分',
         requiredEvidenceKinds: ['project-metric', 'review-note']
       }
     ],
     riskAlerts: [
       {
         id: 'RALT-001',
-        title: '虚构客户活动核查',
+        title: '客户活动核查',
         sourceType: 'client',
         sourceId: 'CLI-001',
         ruleId: 'RRULE-001',
@@ -1317,7 +1317,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'RALT-002',
-        title: '虚构投行项目指标核查',
+        title: '投行项目指标核查',
         sourceType: 'ib-project',
         sourceId: 'IBP-001',
         ruleId: 'RRULE-002',
@@ -1333,7 +1333,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'RALT-003',
-        title: '虚构客户资料补正调查',
+        title: '客户资料补正调查',
         sourceType: 'client',
         sourceId: 'CLI-002',
         ruleId: 'RRULE-001',
@@ -1349,7 +1349,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'RALT-004',
-        title: '虚构项目升级待办',
+        title: '项目升级待办',
         sourceType: 'ib-project',
         sourceId: 'IBP-002',
         ruleId: 'RRULE-002',
@@ -1365,7 +1365,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'RALT-005',
-        title: '虚构客户待复核预警',
+        title: '客户待复核预警',
         sourceType: 'client',
         sourceId: 'CLI-003',
         ruleId: 'RRULE-001',
@@ -1387,7 +1387,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'client',
         sourceId: 'CLI-001',
         kind: 'activity-log',
-        summary: '虚构活动日志',
+        summary: '活动日志',
         verified: true
       },
       {
@@ -1396,7 +1396,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'client',
         sourceId: 'CLI-001',
         kind: 'identity-check',
-        summary: '虚构身份核查',
+        summary: '身份核查',
         verified: true
       },
       {
@@ -1405,7 +1405,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'ib-project',
         sourceId: 'IBP-001',
         kind: 'project-metric',
-        summary: '虚构项目指标快照',
+        summary: '项目指标快照',
         verified: true
       },
       {
@@ -1414,7 +1414,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'ib-project',
         sourceId: 'IBP-001',
         kind: 'review-note',
-        summary: '虚构项目复核说明',
+        summary: '项目复核说明',
         verified: true
       },
       {
@@ -1423,7 +1423,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'client',
         sourceId: 'CLI-002',
         kind: 'activity-log',
-        summary: '虚构客户活动日志',
+        summary: '客户活动日志',
         verified: true
       },
       {
@@ -1432,7 +1432,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'client',
         sourceId: 'CLI-002',
         kind: 'identity-check',
-        summary: '虚构身份复核材料',
+        summary: '身份复核材料',
         verified: true
       },
       {
@@ -1441,7 +1441,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'ib-project',
         sourceId: 'IBP-002',
         kind: 'project-metric',
-        summary: '虚构项目指标材料',
+        summary: '项目指标材料',
         verified: true
       },
       {
@@ -1450,7 +1450,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'ib-project',
         sourceId: 'IBP-002',
         kind: 'review-note',
-        summary: '虚构复核材料',
+        summary: '复核材料',
         verified: true
       },
       {
@@ -1459,7 +1459,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'client',
         sourceId: 'CLI-003',
         kind: 'activity-log',
-        summary: '虚构活动记录',
+        summary: '活动记录',
         verified: true
       },
       {
@@ -1468,7 +1468,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'client',
         sourceId: 'CLI-003',
         kind: 'identity-check',
-        summary: '虚构身份记录',
+        summary: '身份记录',
         verified: true
       },
       {
@@ -1477,7 +1477,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         sourceType: 'client',
         sourceId: 'CLI-001',
         kind: 'identity-check',
-        summary: '未核验的演示材料',
+        summary: '未核验的材料',
         verified: false
       }
     ],
@@ -1499,7 +1499,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         alertId: 'RALT-004',
         investigatorId: 'EMP-005',
         evidenceIds: ['REVD-007', 'REVD-008'],
-        analysis: '演示项目指标需升级。',
+        analysis: '项目指标需升级。',
         conclusion: 'confirmed',
         proposedDisposition: 'escalate',
         ruleVersion: 1,
@@ -1511,7 +1511,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         alertId: 'RALT-005',
         investigatorId: 'EMP-005',
         evidenceIds: ['REVD-009', 'REVD-010'],
-        analysis: '核对后为虚构误报。',
+        analysis: '核对后为误报。',
         conclusion: 'false-positive',
         proposedDisposition: 'close',
         ruleVersion: 1,
@@ -1536,7 +1536,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
         investigationId: 'RINV-002',
         reviewerId: 'EMP-004',
         decision: 'approve',
-        reason: '同意按演示规则升级。',
+        reason: '同意按规则升级。',
         alertVersion: 4,
         reviewedAt: now
       }
@@ -1559,15 +1559,15 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     institutionMaterials: [
       {
         id: 'SMAT-001',
-        title: '虚构研究资料规范',
+        title: '研究资料规范',
         documentId: 'DOC-002',
         documentVersion: 1,
         scope: 'research-roadshow'
       },
-      { id: 'SMAT-002', title: '虚构内部材料', documentId: 'DOC-002', documentVersion: 1, scope: 'internal' },
+      { id: 'SMAT-002', title: '内部材料', documentId: 'DOC-002', documentVersion: 1, scope: 'internal' },
       {
         id: 'SMAT-003',
-        title: '尚未批准的虚构资料',
+        title: '尚未批准的资料',
         documentId: 'DOC-001',
         documentVersion: 1,
         scope: 'research-roadshow'
@@ -1577,7 +1577,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'SNEED-001',
         institutionId: 'INST-001',
-        title: '虚构机构研究路演需求',
+        title: '机构研究路演需求',
         requestedMaterialIds: ['SMAT-001'],
         status: 'new',
         returnReason: null,
@@ -1588,7 +1588,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'SNEED-002',
         institutionId: 'INST-001',
-        title: '虚构超范围资料需求',
+        title: '超范围资料需求',
         requestedMaterialIds: ['SMAT-002'],
         status: 'new',
         returnReason: null,
@@ -1599,10 +1599,10 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       {
         id: 'SNEED-003',
         institutionId: 'INST-001',
-        title: '虚构退回补正需求',
+        title: '退回补正需求',
         requestedMaterialIds: ['SMAT-002'],
         status: 'returned',
-        returnReason: '资料不在演示服务范围内，请改选已批准资料。',
+        returnReason: '资料不在服务范围内，请改选已批准资料。',
         roadshowId: null,
         businessVersion: 2,
         createdAt: now
@@ -1616,7 +1616,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
     todos: [
       {
         id: 'TODO-001',
-        title: '审批演示出差申请',
+        title: '审批出差申请',
         assigneeId: 'EMP-002',
         sourceType: 'form',
         sourceId: 'FORM-001',
@@ -1626,7 +1626,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'OTODO-001',
-        title: '演示研究文档复核',
+        title: '研究文档复核',
         assigneeId: 'EMP-003',
         sourceType: 'document',
         sourceId: 'DOC-001',
@@ -1636,7 +1636,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'OTODO-002',
-        title: '审批演示逾期通用申请',
+        title: '审批逾期通用申请',
         assigneeId: 'EMP-002',
         sourceType: 'form',
         sourceId: 'OFFORM-001',
@@ -1646,7 +1646,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'APPTODO-001',
-        title: '审批虚构办公用品申请',
+        title: '审批办公用品申请',
         assigneeId: 'EMP-002',
         sourceType: 'approval',
         sourceId: 'APPR-001',
@@ -1656,7 +1656,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'APPTODO-002',
-        title: '审批虚构资料补正申请',
+        title: '审批资料补正申请',
         assigneeId: 'EMP-002',
         sourceType: 'approval',
         sourceId: 'APPR-002',
@@ -1666,7 +1666,7 @@ export function createSeedState(seed = DEFAULT_DEMO_SEED, clock = new DemoClock(
       },
       {
         id: 'APPTODO-003',
-        title: '审批虚构已批准申请',
+        title: '审批已批准申请',
         assigneeId: 'EMP-002',
         sourceType: 'approval',
         sourceId: 'APPR-003',

@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -495,6 +496,8 @@ function checkRead(state: DemoState, input: ResearchReadInput): AwcpFieldError[]
 }
 
 function createErrors(state: DemoState, input: ResearchCreateInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = keyErrors(input.idempotencyKey);
   if (!state.employees.some((item) => item.id === input.actorId && item.active && item.roles.includes('analyst')))
     errors.push(fieldError(['actorId'], '只有分析师可以建立课题。'));
@@ -504,6 +507,8 @@ function createErrors(state: DemoState, input: ResearchCreateInput): AwcpFieldEr
 }
 
 function checkMutation(state: DemoState, operation: Mutation, input: ResearchMutationInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, operation === 'review' ? 'approve' : 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const record = state.idempotencyRecords.find((item) => item.key === input.idempotencyKey);
   if (record)
     return record.operation === `research.${operation}` && record.fingerprint === mutationFingerprint(operation, input)

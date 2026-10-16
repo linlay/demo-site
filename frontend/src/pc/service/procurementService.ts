@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -136,6 +137,8 @@ function audit(
   });
 }
 function createErrors(state: DemoState, input: PurchaseCreateInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'create', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -146,6 +149,8 @@ function createErrors(state: DemoState, input: PurchaseCreateInput): AwcpFieldEr
   return errors;
 }
 function compareErrors(state: DemoState, input: PurchaseCompareInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'compare', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -184,6 +189,8 @@ function shanghaiDate(now: string): string {
   }).format(new Date(now));
 }
 function reviewErrors(state: DemoState, input: SupplierReviewInput, today: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'approve');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'supplier.review', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -221,6 +228,8 @@ function reviewErrors(state: DemoState, input: SupplierReviewInput, today: strin
   return errors;
 }
 function receiptErrors(state: DemoState, input: ReceiptAcceptInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'receipt.accept', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);

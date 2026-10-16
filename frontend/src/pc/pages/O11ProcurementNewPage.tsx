@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import { useAwcpAction, type AwcpActionRegistration } from '@app/awcp';
 import { useState, type ReactElement } from 'react';
 
@@ -11,7 +12,7 @@ const EXAMPLE: PurchaseCreateInput = { actorId: 'EMP-001', itemName: '办公显�
 
 export default function O11ProcurementNewPage({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new ProcurementService(repository));
-  const [actorId, setActorId] = useState('');
+  const actorId = useCurrentActor('EMP-001');
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState<number | ''>('');
   const [message, setMessage] = useState('');
@@ -27,7 +28,7 @@ export default function O11ProcurementNewPage({ repository }: { repository: Demo
     catch (error) { setMessage(error instanceof Error ? error.message : '创建请购单失败。'); }
   }
   return <section className={styles.page} aria-label="创建请购单表单">
-    <label>申请人 <select value={actorId} onChange={(event) => setActorId(event.target.value)} required><option value="">请选择</option>{repository.snapshot().employees.filter((employee) => employee.active).map((employee) => <option key={employee.id} value={employee.id}>{employee.name}（{employee.id}）</option>)}</select></label>
+
     <label>采购物品 <input value={itemName} onChange={(event) => setItemName(event.target.value)} required /></label>
     <label>数量 <input type="number" min="1" value={quantity} onChange={(event) => setQuantity(event.target.value ? Number(event.target.value) : '')} required /></label>
     <button type="button" disabled={!actorId || !itemName.trim() || !quantity} onClick={submit}>创建请购单并查看详情</button>

@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useState, type FormEvent, type ReactElement } from 'react';
 
@@ -21,6 +22,7 @@ function newIntentKey(): string {
 }
 
 export function ExpenseCheckForm({ service }: { service: ExpenseService }): ReactElement {
+  const actorId = useCurrentActor('EMP-001');
   const [travelFormId, setTravelFormId] = useState('');
   const [assetId, setAssetId] = useState('');
   const [invoiceNo, setInvoiceNo] = useState('');
@@ -29,7 +31,7 @@ export function ExpenseCheckForm({ service }: { service: ExpenseService }): Reac
   const [declaredTotalCents, setDeclaredTotalCents] = useState<number | ''>('');
   const [intentKey, setIntentKey] = useState(newIntentKey);
   const [message, setMessage] = useState('');
-  const trips = service.eligibleTrips();
+  const trips = service.eligibleTrips().filter((trip) => trip.applicantId === actorId);
   const trip = trips.find((item) => item.formId === travelFormId);
   const assets = travelFormId ? service.availableReceipts(travelFormId) : [];
 
@@ -54,7 +56,7 @@ export function ExpenseCheckForm({ service }: { service: ExpenseService }): Reac
   function check(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     const input: ExpenseCheckInput = {
-      actorId: trip?.applicantId ?? '',
+      actorId,
       travelFormId,
       receipts: [{ invoiceNo, assetId, amountCents: Number(amountCents) }],
       lineItems: [{ category: category as 'transport' | 'hotel' | 'meal' | 'other', invoiceNo, amountCents: Number(amountCents) }],

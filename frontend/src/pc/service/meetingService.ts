@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -289,6 +290,8 @@ function availabilityErrors(state: DemoState, input: AvailabilityInput, now: str
   return errors;
 }
 function reserveErrors(state: DemoState, input: ReserveInput, now: string, includeConflicts = true): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = replayErrors(state, 'reserve', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...availabilityErrors(state, input, now));
@@ -313,6 +316,8 @@ function rescheduleErrors(
   now: string,
   includeConflicts = true
 ): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = replayErrors(state, 'reschedule', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...readErrors(state, input));
@@ -342,6 +347,8 @@ function rescheduleErrors(
   return errors;
 }
 function minutesErrors(state: DemoState, input: MinutesInput, now: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = replayErrors(state, 'minutes.save', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...readErrors(state, input));

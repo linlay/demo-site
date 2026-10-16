@@ -9,8 +9,8 @@ it('queries document IDs, versions and sources without inventing empty search re
   expect(service.query({ actorId: 'EMP-003', keyword: '办公' }).items).toEqual([
     expect.objectContaining({
       documentId: 'DOC-001',
-      title: '演示办公指引',
-      source: '虚构办公制度库',
+      title: '办公指引',
+      source: '办公制度库',
       documentVersion: 1,
       status: 'draft'
     })
@@ -20,11 +20,11 @@ it('queries document IDs, versions and sources without inventing empty search re
     items: []
   });
   expect(service.read({ actorId: 'EMP-003', documentId: 'DOC-001', version: null })).toMatchObject({
-    source: '虚构办公制度库',
+    source: '办公制度库',
     documentVersion: 1,
     blocks: [
-      { id: 'DBLK-001', kind: 'heading', text: '演示办公指引' },
-      { id: 'DBLK-002', kind: 'paragraph', text: '仅供虚构业务场景演示。' }
+      { id: 'DBLK-001', kind: 'heading', text: '办公指引' },
+      { id: 'DBLK-002', kind: 'paragraph', text: '本指引用于规范部门日常办公和审批流程。' }
     ]
   });
   expect(service.validateRead({ actorId: 'EMP-003', documentId: 'DOC-001', version: 99 })).toContainEqual(
@@ -62,15 +62,15 @@ it('patches a document block into a new version while preserving old content', (
   expect(service.read({ actorId: 'EMP-003', documentId: 'DOC-001', version: null })).toMatchObject({
     documentVersion: 2,
     blocks: [
-      expect.objectContaining({ id: 'DBLK-001', text: '演示办公指引' }),
+      expect.objectContaining({ id: 'DBLK-001', text: '办公指引' }),
       expect.objectContaining({ id: 'DBLK-002', text: '虚构流程修订内容。' })
     ]
   });
   expect(service.read({ actorId: 'EMP-003', documentId: 'DOC-001', version: 1 })).toMatchObject({
     documentVersion: 1,
     blocks: [
-      expect.objectContaining({ id: 'DBLK-001', text: '演示办公指引' }),
-      expect.objectContaining({ id: 'DBLK-002', text: '仅供虚构业务场景演示。' })
+      expect.objectContaining({ id: 'DBLK-001', text: '办公指引' }),
+      expect.objectContaining({ id: 'DBLK-002', text: '本指引用于规范部门日常办公和审批流程。' })
     ]
   });
   expect(service.validatePatch({ ...args, idempotencyKey: 'old-business-version' })).toContainEqual(

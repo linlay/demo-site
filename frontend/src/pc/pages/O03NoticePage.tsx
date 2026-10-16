@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
@@ -61,7 +62,7 @@ export default function O03NoticePage({
   objectId?: string;
 }): ReactElement {
   const [service] = useState(() => new NoticeService(repository));
-  const [actorId, setActorId] = useState(() => repository.snapshot().notices.find((item) => item.id === objectId)?.authorId ?? 'EMP-004');
+  const actorId = useCurrentActor(() => repository.snapshot().notices.find((item) => item.id === objectId)?.authorId ?? 'EMP-004');
   const [selected, setSelected] = useState(objectId ?? 'NTC-001');
   const [departmentIds, setDepartmentIds] = useState<string[]>(['DEP-001']);
   const [message, setMessage] = useState('');
@@ -178,14 +179,8 @@ export default function O03NoticePage({
   return (
     <section className={styles.page} aria-label="公告通知事项办理">
       <div className={styles.controls}>
-        <label htmlFor="o03-actor">当前操作人</label>
-        <select id="o03-actor" value={actorId} onChange={(event) => setActorId(event.target.value)}>
-          {service.actors().map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}（{item.id}）
-            </option>
-          ))}
-        </select>
+
+
         <label htmlFor="o03-notice">通知</label>
         <select
           id="o03-notice"

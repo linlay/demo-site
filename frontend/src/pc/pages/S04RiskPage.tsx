@@ -1,5 +1,6 @@
+import { useCurrentActor, useCurrentUser } from '../../app/currentUserContext';
 import { Modal } from 'antd';
-import { useAwcpAction } from '@app/awcp';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration, AwcpFieldError } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -102,7 +103,8 @@ export default function S04RiskPage({
 
   useEffect(() => service.subscribe(() => setRevision((value) => value + 1)), [service]);
 
-  const [actorId, setActorId] = useState('EMP-006');
+  const actorId = useCurrentActor('EMP-006');
+  const identity = useCurrentUser();
   const alertId = objectId ?? 'RALT-001';
   const initialAlert = service.snapshot().riskAlerts.find((r) => r.id === alertId);
   const initialInvestigation = service
@@ -190,9 +192,9 @@ export default function S04RiskPage({
     action: 'securities.alert.assign',
     title: '分派预警调查',
     description: guide(
-      '将新预警分派给在职调查员。',
-      '风险监控员、new 状态及当前版本。',
-      '记录调查人和分派审计，状态改为 investigating。'
+      '将新预警分派给在职调查员，或由调查员领取本人处理。',
+      '未领取的新预警及当前版本；风险监控人员可分派，调查人员仅可领取给自己。',
+      '记录实际办理人与调查人，状态改为 investigating；保留版本和幂等检查。'
     ),
     inputSchema: RISK_ASSIGN_SCHEMA,
     examples: [ASSIGN],
@@ -311,11 +313,24 @@ export default function S04RiskPage({
   useAwcpAction(closeAction);
 
   const actor = state.employees.find((e) => e.id === actorId);
-  const canAssign = actor?.roles.includes('risk-monitor') && alert?.status === 'new';
+  const simpleWorkflow = state.workflowProfile === 'coarse-roles';
+  const canAssign =
+    actor?.active && actor.roles.includes('risk-monitor') && alert?.status === 'new' && !alert.assigneeId;
+  const canClaim =
+    actor?.active && actor.roles.includes('risk-investigator') && alert?.status === 'new' && !alert.assigneeId;
+  const availablePeople = state.employees.filter(
+    (employee) => employee.active && (!identity || identity.employees.some((item) => item.id === employee.id))
+  );
+  const investigators = availablePeople.filter((employee) => employee.roles.includes('risk-investigator'));
+  const monitors = availablePeople.filter((employee) => employee.roles.includes('risk-monitor'));
+  const reviewers = availablePeople.filter(
+    (employee) => employee.roles.includes('risk-reviewer') && employee.id !== alert?.assigneeId
+  );
+  const assigned = availablePeople.find((employee) => employee.id === alert?.assigneeId);
   const canEdit =
     !!actor?.roles.includes('risk-investigator') &&
-    alert?.assigneeId === actorId &&
-    ['investigating', 'returned'].includes(alert.status);
+    (alert?.assigneeId === actorId || (simpleWorkflow && alert?.status === 'new' && !alert.assigneeId)) &&
+    ['new', 'investigating', 'returned'].includes(alert?.status ?? '');
   const canReview =
     !!actor?.roles.includes('risk-reviewer') && alert?.assigneeId !== actorId && alert?.status === 'pending-review';
   const canClose = !!actor?.roles.includes('risk-monitor') && alert?.status === 'approved';
@@ -329,7 +344,7 @@ export default function S04RiskPage({
   };
   const draftChanged = JSON.stringify(draft) !== savedSignature;
   const statusNames: Record<string, string> = {
-    new: '待分派',
+    new: simpleWorkflow ? '待填写' : '待领取',
     investigating: '调查中',
     returned: '退回补正',
     'pending-review': '待复核',
@@ -348,14 +363,11 @@ export default function S04RiskPage({
       ? state.clients.find((c) => c.id === alert.sourceId)
       : state.ibProjects.find((p) => p.id === alert?.sourceId);
   const sourceName = source ? ('name' in source ? String(source.name) : String(source.title)) : '—';
-  const stage =
-    alert?.status === 'new'
-      ? 0
-      : ['investigating', 'returned'].includes(alert?.status ?? '')
-        ? 1
-        : alert?.status === 'pending-review'
-          ? 2
-          : 3;
+  const stage = ['new', 'investigating', 'returned'].includes(alert?.status ?? '')
+    ? 0
+    : alert?.status === 'pending-review'
+      ? 1
+      : 2;
 
   function loadSaved() {
     const current = service.snapshot().riskAlerts.find((r) => r.id === alertId);
@@ -422,30 +434,15 @@ export default function S04RiskPage({
     <div className={styles.form}>
       <header className={styles.toolbar}>
         <div>
-          <h1>{t('风险预警调查与处置申请')}</h1>
+          <h2>{alert?.title}</h2>
           <p>
             {alertId} · {t('业务版本')} {alert?.businessVersion} ·{' '}
             <span className={styles.status}>{t(statusNames[alert?.status ?? 'new'])}</span>
           </p>
         </div>
-        <label className={styles.field}>
-          {t('操作人')}
-          <select aria-label={t('操作人')} value={actorId} onChange={(e) => setActorId(e.target.value)}>
-            {state.employees
-              .filter(
-                (e) =>
-                  e.active && e.roles.some((r) => ['risk-monitor', 'risk-investigator', 'risk-reviewer'].includes(r))
-              )
-              .map((e) => (
-                <option value={e.id} key={e.id}>
-                  {e.name}（{e.id}）
-                </option>
-              ))}
-          </select>
-        </label>
       </header>
       <nav className={styles.flow} aria-label={t('办理进度')}>
-        {['预警分派', '调查填报', '独立复核', '处置归档'].map((title, index) => (
+        {['调查填报', '独立复核', '处置归档'].map((title, index) => (
           <div
             key={title}
             className={`${styles.flowStep} ${stage === index ? styles.flowCurrent : ''}`}
@@ -456,15 +453,157 @@ export default function S04RiskPage({
           </div>
         ))}
       </nav>
-      {!canEdit && (
-        <div className={styles.notice}>
-          {t(
-            alert?.status === 'new'
-              ? '请先由监控员分派调查，再切换到指定调查人填写表单。'
-              : '当前操作人或流程状态下，调查表单为只读。'
+      <section className={styles.nextStep} aria-label={t('当前办理人和下一步')}>
+        <div className={styles.people}>
+          <span>
+            {t('调查填报')}：
+            <strong>{(assigned?.name ?? investigators.map((employee) => employee.name).join('、')) || '—'}</strong>
+          </span>
+          <span>
+            {t(simpleWorkflow ? '审批' : '独立复核')}：
+            <strong>{reviewers.map((employee) => employee.name).join('、') || '—'}</strong>
+          </span>
+          {!simpleWorkflow && (
+            <span>
+              {t('风险监控')}：<strong>{monitors.map((employee) => employee.name).join('、') || '—'}</strong>
+            </span>
           )}
         </div>
-      )}
+        {alert?.status === 'new' && !simpleWorkflow ? (
+          <>
+            <p>{t('调查人可直接领取并填写，无需先分派。')}</p>
+            <div className={styles.actionRow}>
+              {canClaim && (
+                <button
+                  className={styles.primary}
+                  type="button"
+                  onClick={() =>
+                    run(() =>
+                      service.assign({
+                        actorId,
+                        alertId,
+                        assigneeId: actorId,
+                        expectedVersion: alert.businessVersion,
+                        idempotencyKey: key()
+                      })
+                    )
+                  }
+                >
+                  {t('领取并填写')}
+                </button>
+              )}
+              {!canClaim &&
+                identity &&
+                investigators.map((employee) => (
+                  <button
+                    key={employee.id}
+                    className={styles.primary}
+                    type="button"
+                    onClick={() => identity.changeUser(employee.id)}
+                  >
+                    {t('切换为')} {employee.name} · {t('填写调查表')}
+                  </button>
+                ))}
+            </div>
+            {canAssign && (
+              <details className={styles.optionalAssign}>
+                <summary>{t('也可分派给调查人')}</summary>
+                <div className={styles.actionRow}>
+                  <label className={styles.field}>
+                    {t('指派调查人')}
+                    <select
+                      aria-label={t('调查人')}
+                      value={assigneeId}
+                      onChange={(event) => setAssigneeId(event.target.value)}
+                    >
+                      <option value="">{t('请选择')}</option>
+                      {investigators.map((employee) => (
+                        <option key={employee.id} value={employee.id}>
+                          {employee.name} · {t('风险调查')}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    className={styles.secondary}
+                    type="button"
+                    disabled={!assigneeId}
+                    onClick={() =>
+                      run(() =>
+                        service.assign({
+                          actorId,
+                          alertId,
+                          assigneeId,
+                          expectedVersion: alert.businessVersion,
+                          idempotencyKey: key()
+                        })
+                      )
+                    }
+                  >
+                    {t('分派调查')}
+                  </button>
+                </div>
+              </details>
+            )}
+          </>
+        ) : canEdit ? (
+          <p>{t('你正在办理该事项，可直接填写并保存草稿。')}</p>
+        ) : (
+          <>
+            <p>
+              {t(
+                alert?.status === 'new'
+                  ? '办理人员可直接填写调查表，提交后交审核人员审批。'
+                  : ['investigating', 'returned'].includes(alert?.status ?? '')
+                    ? '由指定调查人继续填写，其他用户可查看已保存内容。'
+                    : alert?.status === 'pending-review'
+                      ? '调查已提交，等待独立复核。'
+                      : alert?.status === 'approved'
+                        ? '复核已通过，等待执行处置。'
+                        : '此事项已完成，可查看调查和处理记录。'
+              )}
+            </p>
+            <div className={styles.actionRow}>
+              {identity && simpleWorkflow && alert?.status === 'new' && investigators.map((employee) => (
+                <button key={employee.id} className={styles.primary} type="button" onClick={() => identity.changeUser(employee.id)}>
+                  {t('切换为')} {employee.name} · {t('填写调查表')}
+                </button>
+              ))}
+              {identity && ['investigating', 'returned'].includes(alert?.status ?? '') && assigned && (
+                <button className={styles.primary} type="button" onClick={() => identity.changeUser(assigned.id)}>
+                  {t('切换为')} {assigned.name} · {t('继续填写')}
+                </button>
+              )}
+              {identity &&
+                alert?.status === 'pending-review' &&
+                !canReview &&
+                reviewers.map((employee) => (
+                  <button
+                    key={employee.id}
+                    className={styles.primary}
+                    type="button"
+                    onClick={() => identity.changeUser(employee.id)}
+                  >
+                    {t('切换为')} {employee.name} · {t('复核调查')}
+                  </button>
+                ))}
+              {identity &&
+                alert?.status === 'approved' &&
+                !canClose &&
+                monitors.map((employee) => (
+                  <button
+                    key={employee.id}
+                    className={styles.primary}
+                    type="button"
+                    onClick={() => identity.changeUser(employee.id)}
+                  >
+                    {t('切换为')} {employee.name} · {t('执行处置')}
+                  </button>
+                ))}
+            </div>
+          </>
+        )}
+      </section>
       {stale && (
         <div className={styles.notice} role="alert">
           {t('事项版本已变化，请载入最新保存内容后继续。')}
@@ -496,7 +635,7 @@ export default function S04RiskPage({
           </ul>
         </div>
       )}
-      <details className={styles.section} open>
+      <details className={styles.section}>
         <summary>{t('预警与申请单位信息')}</summary>
         <div className={styles.sectionBody}>
           <div className={styles.fields}>
@@ -508,7 +647,7 @@ export default function S04RiskPage({
               ['监控规则', rule?.name ?? ''],
               ['规则版本', String(rule?.version ?? '')],
               ['监测指标', `${alert?.observedValue ?? ''} ${rule?.unit ?? ''}`],
-              ['演示阈值', `${rule?.threshold ?? ''} ${rule?.unit ?? ''}`],
+              ['预警阈值', `${rule?.threshold ?? ''} ${rule?.unit ?? ''}`],
               ['预警生成时间', alert?.createdAt ? new Date(alert.createdAt).toLocaleString(locale) : ''],
               ['指定调查人', state.employees.find((e) => e.id === alert?.assigneeId)?.name ?? t('未分派')]
             ].map(([title, value]) => (
@@ -518,350 +657,322 @@ export default function S04RiskPage({
               </label>
             ))}
           </div>
-          <div className={styles.actionRow}>
-            <label className={styles.field}>
-              {t('指派调查人')}
-              <select
-                aria-label={t('调查人')}
-                value={assigneeId}
-                disabled={!canAssign}
-                onChange={(e) => setAssigneeId(e.target.value)}
-              >
-                <option value="">{t('请选择')}</option>
-                {state.employees
-                  .filter((e) => e.active && e.roles.includes('risk-investigator'))
-                  .map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.name}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <button
-              className={styles.primary}
-              type="button"
-              disabled={!canAssign || !assigneeId}
-              onClick={() =>
-                run(() =>
-                  service.assign({
-                    actorId,
-                    alertId,
-                    assigneeId,
-                    expectedVersion: alert?.businessVersion ?? 0,
-                    idempotencyKey: key()
-                  })
-                )
-              }
-            >
-              {t('分派调查')}
-            </button>
-          </div>
         </div>
       </details>
-      <RiskDossierEditor
-        value={dossier}
-        onChange={setDossier}
-        disabled={!canEdit || stale}
-        employees={state.employees}
-        errors={errors}
-      />
-      <details className={styles.section} open>
-        <summary>{t('证据材料与核验清单')}</summary>
-        <div className={styles.sectionBody}>
-          <p>
-            {t('规则要求证据')}：{rule?.requiredEvidenceKinds.map((k) => t(kindNames[k])).join('、')}
-          </p>
-          <div className={styles.tableScroll}>
-            <table className={styles.readTable}>
-              <thead>
-                <tr>
-                  {['选用', '证据编号', '材料类别', '材料摘要', '核验状态'].map((v) => (
-                    <th key={v}>{t(v)}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {linked.map((e) => (
-                  <tr key={e.id}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        aria-label={`${t('选用证据')} ${e.id}`}
-                        disabled={!canEdit || stale || !e.verified}
-                        checked={draft.evidenceIds.includes(e.id)}
-                        onChange={(event) =>
-                          setEvidenceIds(
-                            (event.target.checked
-                              ? [...draft.evidenceIds, e.id]
-                              : draft.evidenceIds.filter((id) => id !== e.id)
-                            ).join(',')
-                          )
-                        }
-                      />
-                    </td>
-                    <td>{e.id}</td>
-                    <td>{t(kindNames[e.kind])}</td>
-                    <td>{e.summary}</td>
-                    <td>{t(e.verified ? '已核验' : '未核验')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className={styles.actionRow}>
-            <label className={styles.field}>
-              {t('可补充证据库')}
-              <select aria-label={t('可补充证据')} value={evidenceId} onChange={(e) => setEvidenceId(e.target.value)}>
-                <option value="">{t('请选择')}</option>
-                {available.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.id} · {t(kindNames[e.kind])} · {t(e.verified ? '已核验' : '未核验')}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              className={styles.secondary}
-              type="button"
-              disabled={!evidenceId || !(actor?.roles.includes('risk-monitor') || canEdit)}
-              onClick={() =>
-                run(() =>
-                  service.attach({
-                    actorId,
-                    alertId,
-                    evidenceId,
-                    expectedVersion: alert?.businessVersion ?? 0,
-                    idempotencyKey: key()
-                  })
-                )
-              }
-            >
-              {t('补充证据')}
-            </button>
-          </div>
-        </div>
-      </details>
-      <details className={styles.section} open>
-        <summary>{t('调查结论与处置意见')}</summary>
-        <div className={styles.sectionBody}>
-          <label className={styles.field}>
-            <span>
-              <b className={styles.required}>*</b>
-              {t('调查分析')}
-            </span>
-            <textarea
-              aria-label={t('调查分析')}
-              rows={5}
-              maxLength={500}
-              disabled={!canEdit || stale}
-              value={analysis}
-              onChange={(e) => setAnalysis(e.target.value)}
-            />
-            <small>{analysis.length}/500</small>
-          </label>
-          <div className={styles.fields}>
-            <label className={styles.field}>
-              <span>
-                <b className={styles.required}>*</b>
-                {t('调查结论')}
-              </span>
-              <select
-                aria-label={t('调查结论')}
-                disabled={!canEdit || stale}
-                value={conclusion}
-                onChange={(e) => {
-                  const next = e.target.value as typeof conclusion;
-                  setConclusion(next);
-                  if (next === 'false-positive') setProposedDisposition('close');
-                }}
-              >
-                <option value="">{t('请选择')}</option>
-                <option value="false-positive">{t('演示误报')}</option>
-                <option value="confirmed">{t('确认预警')}</option>
-              </select>
-            </label>
-            <label className={styles.field}>
-              <span>
-                <b className={styles.required}>*</b>
-                {t('处置建议')}
-              </span>
-              <select
-                aria-label={t('处置建议')}
-                disabled={!canEdit || stale}
-                value={proposedDisposition}
-                onChange={(e) => setProposedDisposition(e.target.value as typeof proposedDisposition)}
-              >
-                <option value="">{t('请选择')}</option>
-                <option value="close">{t('关闭')}</option>
-                <option value="escalate" disabled={conclusion === 'false-positive'}>
-                  {t('升级')}
-                </option>
-              </select>
-            </label>
-          </div>
-        </div>
-      </details>
-      {investigation && (
-        <details className={styles.section}>
-          <summary>
-            {t('已提交调查快照')} · {investigation.id}
-          </summary>
-          <div className={styles.sectionBody}>
-            {investigation.dossier ? (
-              <RiskDossierPreview
-                draft={{
-                  analysis: investigation.analysis,
-                  conclusion: investigation.conclusion,
-                  proposedDisposition: investigation.proposedDisposition,
-                  evidenceIds: investigation.evidenceIds,
-                  dossier: investigation.dossier
-                }}
-                employees={state.employees}
-              />
-            ) : (
+      {(alert?.status !== 'new' || simpleWorkflow) && (
+        <>
+          <RiskDossierEditor
+            value={dossier}
+            onChange={setDossier}
+            disabled={!canEdit || stale}
+            employees={state.employees}
+            errors={errors}
+          />
+          <details className={styles.section} open>
+            <summary>{t('证据材料与核验清单')}</summary>
+            <div className={styles.sectionBody}>
               <p>
-                {investigation.analysis} · {investigation.evidenceIds.join('、')}
+                {t('规则要求证据')}：{rule?.requiredEvidenceKinds.map((k) => t(kindNames[k])).join('、')}
               </p>
-            )}
-          </div>
-        </details>
+              <div className={styles.tableScroll}>
+                <table className={styles.readTable}>
+                  <thead>
+                    <tr>
+                      {['选用', '证据编号', '材料类别', '材料摘要', '核验状态'].map((v) => (
+                        <th key={v}>{t(v)}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {linked.map((e) => (
+                      <tr key={e.id}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            aria-label={`${t('选用证据')} ${e.id}`}
+                            disabled={!canEdit || stale || !e.verified}
+                            checked={draft.evidenceIds.includes(e.id)}
+                            onChange={(event) =>
+                              setEvidenceIds(
+                                (event.target.checked
+                                  ? [...draft.evidenceIds, e.id]
+                                  : draft.evidenceIds.filter((id) => id !== e.id)
+                                ).join(',')
+                              )
+                            }
+                          />
+                        </td>
+                        <td>{e.id}</td>
+                        <td>{t(kindNames[e.kind])}</td>
+                        <td>{e.summary}</td>
+                        <td>{t(e.verified ? '已核验' : '未核验')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className={styles.actionRow}>
+                <label className={styles.field}>
+                  {t('可补充证据库')}
+                  <select
+                    aria-label={t('可补充证据')}
+                    value={evidenceId}
+                    onChange={(e) => setEvidenceId(e.target.value)}
+                  >
+                    <option value="">{t('请选择')}</option>
+                    {available.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.id} · {t(kindNames[e.kind])} · {t(e.verified ? '已核验' : '未核验')}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  className={styles.secondary}
+                  type="button"
+                  disabled={!evidenceId || !(actor?.roles.includes('risk-monitor') || canEdit)}
+                  onClick={() =>
+                    run(() =>
+                      service.attach({
+                        actorId,
+                        alertId,
+                        evidenceId,
+                        expectedVersion: alert?.businessVersion ?? 0,
+                        idempotencyKey: key()
+                      })
+                    )
+                  }
+                >
+                  {t('补充证据')}
+                </button>
+              </div>
+            </div>
+          </details>
+          <details className={styles.section} open>
+            <summary>{t('调查结论与处置意见')}</summary>
+            <div className={styles.sectionBody}>
+              <label className={styles.field}>
+                <span>
+                  <b className={styles.required}>*</b>
+                  {t('调查分析')}
+                </span>
+                <textarea
+                  aria-label={t('调查分析')}
+                  rows={5}
+                  maxLength={500}
+                  disabled={!canEdit || stale}
+                  value={analysis}
+                  onChange={(e) => setAnalysis(e.target.value)}
+                />
+                <small>{analysis.length}/500</small>
+              </label>
+              <div className={styles.fields}>
+                <label className={styles.field}>
+                  <span>
+                    <b className={styles.required}>*</b>
+                    {t('调查结论')}
+                  </span>
+                  <select
+                    aria-label={t('调查结论')}
+                    disabled={!canEdit || stale}
+                    value={conclusion}
+                    onChange={(e) => {
+                      const next = e.target.value as typeof conclusion;
+                      setConclusion(next);
+                      if (next === 'false-positive') setProposedDisposition('close');
+                    }}
+                  >
+                    <option value="">{t('请选择')}</option>
+                    <option value="false-positive">{t('误报')}</option>
+                    <option value="confirmed">{t('确认预警')}</option>
+                  </select>
+                </label>
+                <label className={styles.field}>
+                  <span>
+                    <b className={styles.required}>*</b>
+                    {t('处置建议')}
+                  </span>
+                  <select
+                    aria-label={t('处置建议')}
+                    disabled={!canEdit || stale}
+                    value={proposedDisposition}
+                    onChange={(e) => setProposedDisposition(e.target.value as typeof proposedDisposition)}
+                  >
+                    <option value="">{t('请选择')}</option>
+                    <option value="close">{t('关闭')}</option>
+                    <option value="escalate" disabled={conclusion === 'false-positive'}>
+                      {t('升级')}
+                    </option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </details>
+          {investigation && (
+            <details className={styles.section}>
+              <summary>
+                {t('已提交调查快照')} · {investigation.id}
+              </summary>
+              <div className={styles.sectionBody}>
+                {investigation.dossier ? (
+                  <RiskDossierPreview
+                    draft={{
+                      analysis: investigation.analysis,
+                      conclusion: investigation.conclusion,
+                      proposedDisposition: investigation.proposedDisposition,
+                      evidenceIds: investigation.evidenceIds,
+                      dossier: investigation.dossier
+                    }}
+                    employees={state.employees}
+                  />
+                ) : (
+                  <p>
+                    {investigation.analysis} · {investigation.evidenceIds.join('、')}
+                  </p>
+                )}
+              </div>
+            </details>
+          )}
+          <details className={styles.section} open={canReview || canClose}>
+            <summary>{t('独立复核与最终处置')}</summary>
+            <div className={styles.sectionBody}>
+              <div className={styles.fields}>
+                <label className={styles.field}>
+                  {t('复核决定')}
+                  <select
+                    aria-label={t('复核决定')}
+                    disabled={!canReview}
+                    value={decision}
+                    onChange={(e) => setDecision(e.target.value as typeof decision)}
+                  >
+                    <option value="">{t('请选择')}</option>
+                    <option value="approve">{t('批准')}</option>
+                    <option value="return">{t('退回')}</option>
+                  </select>
+                </label>
+                <label className={styles.field}>
+                  {t('最终处置')}
+                  <select
+                    aria-label={t('最终处置')}
+                    disabled={!canClose}
+                    value={resolution}
+                    onChange={(e) => setResolution(e.target.value as typeof resolution)}
+                  >
+                    <option value="">{t('请选择')}</option>
+                    <option value="close">{t('关闭')}</option>
+                    <option value="escalate">{t('升级')}</option>
+                  </select>
+                </label>
+              </div>
+              <label className={styles.field}>
+                {t('复核意见')}
+                <textarea
+                  aria-label={t('复核意见')}
+                  rows={3}
+                  maxLength={200}
+                  disabled={!canReview}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </label>
+              <div className={styles.actionRow}>
+                <button
+                  className={styles.primary}
+                  type="button"
+                  disabled={!canReview || !decision || !reason.trim()}
+                  onClick={() =>
+                    run(() =>
+                      service.review({
+                        actorId,
+                        alertId,
+                        decision: decision as RiskReviewInput['decision'],
+                        reason,
+                        expectedVersion: alert?.businessVersion ?? 0,
+                        idempotencyKey: key()
+                      })
+                    )
+                  }
+                >
+                  {t('复核调查')}
+                </button>
+                <button
+                  className={styles.secondary}
+                  type="button"
+                  disabled={!canClose || !resolution}
+                  onClick={() =>
+                    run(() =>
+                      service.close({
+                        actorId,
+                        alertId,
+                        resolution: resolution as RiskCloseInput['resolution'],
+                        expectedVersion: alert?.businessVersion ?? 0,
+                        idempotencyKey: key()
+                      })
+                    )
+                  }
+                >
+                  {t('执行处置')}
+                </button>
+              </div>
+            </div>
+          </details>
+          <details className={styles.section}>
+            <summary>
+              {t('复核记录与流程历史')} · {history.length}
+            </summary>
+            <div className={styles.sectionBody}>
+              <ol className={styles.history}>
+                {state.riskReviews
+                  .filter((r) => r.alertId === alertId)
+                  .map((r) => (
+                    <li key={r.id}>
+                      {r.id} · {t(r.decision === 'approve' ? '批准' : '退回')} · {r.reason}
+                      <small>
+                        {r.reviewerId} · {r.reviewedAt}
+                      </small>
+                    </li>
+                  ))}
+                {history.map((r) => (
+                  <li key={r.id}>
+                    {t(statusNames[r.fromStatus ?? 'new'] ?? r.fromStatus ?? '待分派')} →{' '}
+                    {t(statusNames[r.toStatus] ?? r.toStatus)}
+                    <small>
+                      {r.action} · {r.actorId} · {r.at} · v{r.businessVersion}
+                    </small>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </details>
+        </>
       )}
-      <details className={styles.section} open>
-        <summary>{t('独立复核与最终处置')}</summary>
-        <div className={styles.sectionBody}>
-          <div className={styles.fields}>
-            <label className={styles.field}>
-              {t('复核决定')}
-              <select
-                aria-label={t('复核决定')}
-                disabled={!canReview}
-                value={decision}
-                onChange={(e) => setDecision(e.target.value as typeof decision)}
-              >
-                <option value="">{t('请选择')}</option>
-                <option value="approve">{t('批准')}</option>
-                <option value="return">{t('退回')}</option>
-              </select>
-            </label>
-            <label className={styles.field}>
-              {t('最终处置')}
-              <select
-                aria-label={t('最终处置')}
-                disabled={!canClose}
-                value={resolution}
-                onChange={(e) => setResolution(e.target.value as typeof resolution)}
-              >
-                <option value="">{t('请选择')}</option>
-                <option value="close">{t('关闭')}</option>
-                <option value="escalate">{t('升级')}</option>
-              </select>
-            </label>
-          </div>
-          <label className={styles.field}>
-            {t('复核意见')}
-            <textarea
-              aria-label={t('复核意见')}
-              rows={3}
-              maxLength={200}
-              disabled={!canReview}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            />
-          </label>
-          <div className={styles.actionRow}>
-            <button
-              className={styles.primary}
-              type="button"
-              disabled={!canReview || !decision || !reason.trim()}
-              onClick={() =>
-                run(() =>
-                  service.review({
-                    actorId,
-                    alertId,
-                    decision: decision as RiskReviewInput['decision'],
-                    reason,
-                    expectedVersion: alert?.businessVersion ?? 0,
-                    idempotencyKey: key()
-                  })
-                )
-              }
-            >
-              {t('复核调查')}
-            </button>
-            <button
-              className={styles.secondary}
-              type="button"
-              disabled={!canClose || !resolution}
-              onClick={() =>
-                run(() =>
-                  service.close({
-                    actorId,
-                    alertId,
-                    resolution: resolution as RiskCloseInput['resolution'],
-                    expectedVersion: alert?.businessVersion ?? 0,
-                    idempotencyKey: key()
-                  })
-                )
-              }
-            >
-              {t('执行处置')}
-            </button>
-          </div>
-        </div>
-      </details>
-      <details className={styles.section}>
-        <summary>
-          {t('复核记录与流程历史')} · {history.length}
-        </summary>
-        <div className={styles.sectionBody}>
-          <ol className={styles.history}>
-            {state.riskReviews
-              .filter((r) => r.alertId === alertId)
-              .map((r) => (
-                <li key={r.id}>
-                  {r.id} · {t(r.decision === 'approve' ? '批准' : '退回')} · {r.reason}
-                  <small>
-                    {r.reviewerId} · {r.reviewedAt}
-                  </small>
-                </li>
-              ))}
-            {history.map((r) => (
-              <li key={r.id}>
-                {t(statusNames[r.fromStatus ?? 'new'] ?? r.fromStatus ?? '待分派')} →{' '}
-                {t(statusNames[r.toStatus] ?? r.toStatus)}
-                <small>
-                  {r.action} · {r.actorId} · {r.at} · v{r.businessVersion}
-                </small>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </details>
       {message && (
         <div className={styles.message} role="status">
           {message}
         </div>
       )}
-      <footer className={styles.stickyActions}>
-        <span>
-          {t(draftChanged ? '有未保存的修改' : '当前内容已载入')} · {t('核查明细')} {dossier.checks.length} ·{' '}
-          {t('处置措施')} {dossier.measures.length}
-        </span>
-        <button type="button" className={styles.secondary} disabled={!canEdit || stale} onClick={saveDraft}>
-          {t('保存草稿')}
-        </button>
-        <button type="button" className={styles.secondary} onClick={() => setPreviewing(true)}>
-          {t('预览结果')}
-        </button>
-        <button
-          type="button"
-          className={styles.primary}
-          disabled={!canEdit || stale || !analysis.trim() || !conclusion || !proposedDisposition}
-          onClick={submitDossier}
-        >
-          {t('登记调查')}
-        </button>
-      </footer>
+      {(alert?.status !== 'new' || simpleWorkflow) && (
+        <footer className={styles.stickyActions}>
+          <span>
+            {t(draftChanged ? '有未保存的修改' : '当前内容已载入')} · {t('核查明细')} {dossier.checks.length} ·{' '}
+            {t('处置措施')} {dossier.measures.length}
+          </span>
+          <button type="button" className={styles.secondary} disabled={!canEdit || stale} onClick={saveDraft}>
+            {t('保存草稿')}
+          </button>
+          <button type="button" className={styles.secondary} onClick={() => setPreviewing(true)}>
+            {t('预览结果')}
+          </button>
+          <button
+            type="button"
+            className={styles.primary}
+            disabled={!canEdit || stale || !analysis.trim() || !conclusion || !proposedDisposition}
+            onClick={submitDossier}
+          >
+            {t('登记调查')}
+          </button>
+        </footer>
+      )}
       <Modal
         title={t('调查申请预览')}
         open={previewing}

@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -66,8 +67,8 @@ export default function O06DocumentPage({
   objectId?: string;
 }): ReactElement {
   const [service] = useState(() => new DocumentService(repository));
-  const [actorId, setActorId] = useState('EMP-003');
-  const [reviewerId, setReviewerId] = useState('EMP-004');
+  const actorId = useCurrentActor('EMP-003');
+  const reviewerId = actorId;
   const [keyword, setKeyword] = useState('');
   const [selected, setSelected] = useState(objectId ?? 'DOC-001');
   const [viewVersion, setViewVersion] = useState('');
@@ -165,21 +166,15 @@ export default function O06DocumentPage({
   useAwcpAction(archiveAction);
 
   return (
-    <section className={styles.page} aria-labelledby="o06-title">
-      <p className={styles.eyebrow}>O06 · 虚构通用办公</p>
-      <h1 id="o06-title">文档与知识库</h1>
+    <section className={styles.page} aria-label="文档与知识库">
+
+
       <p>检索制度，按文档块修订版本，审阅当前版本并归档。</p>
       <div className={styles.panel}>
         <h2>检索与读取</h2>
         <div className={styles.grid}>
-          <label htmlFor="o06-actor">当前阅读与编辑人</label>
-          <select id="o06-actor" value={actorId} onChange={(event) => setActorId(event.target.value)}>
-            {service.actors().map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}（{item.id}）
-              </option>
-            ))}
-          </select>
+
+
           <label htmlFor="o06-keyword">检索关键词</label>
           <input id="o06-keyword" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
           <label htmlFor="o06-document">文件</label>
@@ -287,14 +282,8 @@ export default function O06DocumentPage({
       <div className={styles.panel}>
         <h2>审阅与归档</h2>
         <div className={styles.grid}>
-          <label htmlFor="o06-reviewer">当前审阅人</label>
-          <select id="o06-reviewer" value={reviewerId} onChange={(event) => setReviewerId(event.target.value)}>
-            {service.actors().map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}（{item.id}）
-              </option>
-            ))}
-          </select>
+
+
         </div>
         <div className={styles.actions}>
           <button

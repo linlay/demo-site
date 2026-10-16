@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
@@ -22,7 +23,7 @@ import {
 } from '../service/directoryService';
 import styles from './O02DirectoryPage.module.css';
 
-const QUERY: DirectoryQueryInput = { actorId: 'EMP-008', departmentId: 'DEP-002', name: '演示' };
+const QUERY: DirectoryQueryInput = { actorId: 'EMP-008', departmentId: 'DEP-002', name: '' };
 const TEAM_READ: TeamReadInput = { teamId: 'TEAM-001', actorId: 'EMP-008' };
 const GROUP_READ: GroupReadInput = { groupId: 'CGROUP-001', actorId: 'EMP-008' };
 const TEAM_REPLACE: TeamReplaceInput = {
@@ -61,7 +62,7 @@ function available(read: () => MembershipView): MembershipView | null {
 
 export default function O02DirectoryPage({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new DirectoryService(repository));
-  const [actorId, setActorId] = useState('EMP-008');
+  const actorId = useCurrentActor('EMP-008');
   const [departmentId, setDepartmentId] = useState('');
   const [name, setName] = useState('');
   const [memberIds, setMemberIds] = useState<string[]>(['EMP-003', 'EMP-009']);
@@ -150,19 +151,13 @@ export default function O02DirectoryPage({ repository }: { repository: DemoRepos
   useAwcpAction(saveAction);
 
   return (
-    <section className={styles.page} aria-labelledby="o02-title">
-      <p className={styles.eyebrow}>O02 · 虚构通用办公</p>
-      <h1 id="o02-title">人员与组织</h1>
-      <p>查询跨部门联系人，选择协作人员，并维护通讯分组。仅使用有效的虚构员工 ID。</p>
+    <section className={styles.page} aria-label="人员与组织">
+
+
+      <p>查询跨部门联系人，选择协作人员，并维护通讯分组。</p>
       <div className={styles.controls}>
-        <label htmlFor="o02-actor">当前操作人</label>
-        <select id="o02-actor" value={actorId} onChange={(event) => setActorId(event.target.value)}>
-          {actors.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}（{item.id}）
-            </option>
-          ))}
-        </select>
+
+
         <label htmlFor="o02-department">部门筛选</label>
         <select id="o02-department" value={departmentId} onChange={(event) => setDepartmentId(event.target.value)}>
           <option value="">全部</option>

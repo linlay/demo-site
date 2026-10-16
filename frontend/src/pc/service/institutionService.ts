@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -206,7 +207,7 @@ function instant(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 function participants(profile: InstitutionProfile): string[] {
-  return [profile.salesId, profile.researchId, profile.organizerId];
+  return [...new Set([profile.salesId, profile.researchId, profile.organizerId])];
 }
 function conflicts(
   state: DemoState,
@@ -256,6 +257,7 @@ export class InstitutionService {
   validateQuery(input: InstitutionQueryInput): AwcpFieldError[] {
     const state = this.snapshot();
     const profile = state.institutionProfiles.find((item) => item.id === input.institutionId);
+    if (profile && state.workflowProfile === 'coarse-roles' && state.employees.some((employee) => employee.id === input.actorId && employee.active && employee.roles.includes('workflow-approver'))) return [];
     const errors = activeRole(state, input.actorId, TEAM_ROLES);
     if (!profile) errors.push(fieldError(['institutionId'], '机构档案不存在。'));
     else if (![profile.salesId, profile.researchId, profile.organizerId].includes(input.actorId))
@@ -335,6 +337,8 @@ export class InstitutionService {
     });
   }
   private reviseErrors(state: DemoState, input: NeedReviseInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [
       ...baseErrors(state, input, ['new', 'returned']),
       ...activeRole(state, input.actorId, ['institution-sales']),
@@ -371,6 +375,8 @@ export class InstitutionService {
     );
   }
   private reserveErrors(state: DemoState, input: RoadshowReserveInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [...baseErrors(state, input, ['new']), ...activeRole(state, input.actorId, ['event-organizer'])];
     const need = needFor(state, input.needId);
     const profile = need ? profileForNeed(state, need) : undefined;
@@ -458,6 +464,8 @@ export class InstitutionService {
     );
   }
   private packageErrors(state: DemoState, input: MaterialPackageInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [
       ...baseErrors(state, input, ['reserved']),
       ...activeRole(state, input.actorId, ['research-service'])
@@ -520,6 +528,8 @@ export class InstitutionService {
     );
   }
   private inviteErrors(state: DemoState, input: ServiceMutationInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [
       ...baseErrors(state, input, ['packaged']),
       ...activeRole(state, input.actorId, ['event-organizer'])
@@ -572,6 +582,8 @@ export class InstitutionService {
     );
   }
   private minutesErrors(state: DemoState, input: RoadshowMinutesInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [
       ...baseErrors(state, input, ['invited']),
       ...activeRole(state, input.actorId, ['event-organizer']),
@@ -635,6 +647,8 @@ export class InstitutionService {
     );
   }
   private followupErrors(state: DemoState, input: ServiceFollowupInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [
       ...baseErrors(state, input, ['minutes-recorded']),
       ...activeRole(state, input.actorId, ['institution-sales']),

@@ -7,7 +7,7 @@ import { usePreferences } from '../../../common/preferences/context';
 import styles from './RiskForm.module.css';
 
 const fieldNames: Record<string, string> = {
-  accountRef: '虚构账户',
+  accountRef: '账户编号',
   market: '市场',
   instrument: '证券品种',
   tradeDate: '业务日期',
@@ -273,7 +273,7 @@ export function RiskDossierEditor({ value: d, onChange, disabled, employees, err
                   {(tab === 'checks'
                     ? [
                         '序号',
-                        '虚构账户 *',
+                        '账户编号 *',
                         '市场 *',
                         '证券品种 *',
                         '业务日期 *',

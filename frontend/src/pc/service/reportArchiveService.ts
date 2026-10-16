@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -77,6 +78,7 @@ function ensure(errors: AwcpFieldError[]): void {
 function reporter(state: DemoState, actorId: string, departmentId: string): AwcpFieldError[] {
   const employee = state.employees.find((item) => item.id === actorId && item.active);
   if (!employee) return [fieldError(['actorId'], '操作人不存在或已离职。')];
+  if (state.workflowProfile === 'coarse-roles') return [];
   return employee.roles.includes('reviewer') ||
     (employee.roles.includes('manager') && employee.departmentId === departmentId)
     ? []
@@ -188,6 +190,8 @@ export class ReportArchiveService {
     return this.repository.subscribe(listener);
   }
   validateGenerate(input: ReportGenerateInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.snapshot();
     const key = replay(state, 'report.generate', input);
     if (key.record || key.errors.length) return key.errors;
@@ -335,6 +339,8 @@ export class ReportArchiveService {
     };
   }
   validateSave(input: ArchiveSaveInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.snapshot();
     const key = replay(state, 'archive.save', input);
     if (key.record || key.errors.length) return key.errors;

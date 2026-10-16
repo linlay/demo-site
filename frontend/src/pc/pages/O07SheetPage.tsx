@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -62,7 +63,7 @@ function key(): string {
 
 export default function O07SheetPage({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new SheetService(repository));
-  const [actorId, setActorId] = useState('EMP-004');
+  const actorId = useCurrentActor('EMP-004');
   const [keyword, setKeyword] = useState('');
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [status, setStatus] = useState<'draft' | 'confirmed' | null>(null);
@@ -172,9 +173,9 @@ export default function O07SheetPage({ repository }: { repository: DemoRepositor
   useAwcpAction(exportAction);
 
   return (
-    <section className={styles.page} aria-labelledby="o07-title">
-      <p className={styles.eyebrow}>O07 · 虚构通用办公</p>
-      <h1 id="o07-title">表格与数据处理</h1>
+    <section className={styles.page} aria-label="表格与数据处理">
+
+
       <p>筛选排序分页、原子批量编辑、导入预检和 CSV 导出。</p>
       <div className={styles.panel}>
         <h2>筛选与分页</h2>
@@ -311,17 +312,8 @@ export default function O07SheetPage({ repository }: { repository: DemoRepositor
         <h2>批量编辑</h2>
         <p>勾选当前页行，设置共同金额和状态；每行名称保持原值。全部校验通过后一起写入。</p>
         <div className={styles.grid}>
-          <label htmlFor="o07-actor">操作人</label>
-          <select id="o07-actor" value={actorId} onChange={(event) => setActorId(event.target.value)}>
-            {repository
-              .snapshot()
-              .employees.filter((item) => item.active)
-              .map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-          </select>
+
+
           <label htmlFor="o07-patch-amount">新金额（分）</label>
           <input
             id="o07-patch-amount"

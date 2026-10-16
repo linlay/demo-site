@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import {
   ArrowRightOutlined,
   AuditOutlined,
@@ -62,7 +63,7 @@ export default function O01TodoPage({
 }): ReactElement {
   const { t, locale } = usePreferences();
   const [service] = useState(() => new TodoService(repository));
-  const [actorId, setActorId] = useState('EMP-002');
+  const actorId = useCurrentActor('EMP-002');
   const [date, setDate] = useState(() => service.query(QUERY).date);
   const [tab, setTab] = useState<'pending' | 'done'>('pending');
   const [page, setPage] = useState(1);
@@ -214,28 +215,7 @@ export default function O01TodoPage({
 
   return (
     <section className={styles.page} aria-label={t('工作台与待办')}>
-      <header className={styles.heading}>
-        <div>
-          <h1>{current ? current.title : t('工作台')}</h1>
-        </div>
-        <label className={styles.actor}>
-          {t('操作人')}
-          <select
-            value={actorId}
-            onChange={(event) => {
-              setActorId(event.target.value);
-              setPage(1);
-            }}
-          >
-            {service.actors().map((actor) => (
-              <option key={actor.id} value={actor.id}>
-                {actor.name}（{actor.id}）
-              </option>
-            ))}
-          </select>
-        </label>
-      </header>
-
+      {current && <h2>{current.title}</h2>}
       {!current && (
         <>
           <div className={styles.metrics}>

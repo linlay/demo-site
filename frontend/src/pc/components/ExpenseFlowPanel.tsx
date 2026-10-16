@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
@@ -62,7 +63,7 @@ function newIntentKey(): string {
 export function ExpenseFlowPanel({ service, objectId }: { service: ExpenseFlowService; objectId?: string }): ReactElement {
   const [items, setItems] = useState(() => service.list());
   const [selected, setSelected] = useState(objectId ?? '');
-  const [actorId, setActorId] = useState('EMP-001');
+  const actorId = useCurrentActor('EMP-001');
   const [reason, setReason] = useState('');
   const [correctionInvoiceNo, setCorrectionInvoiceNo] = useState('');
   const [correctedAmountCents, setCorrectedAmountCents] = useState(0);
@@ -72,7 +73,6 @@ export function ExpenseFlowPanel({ service, objectId }: { service: ExpenseFlowSe
   const expenseFormId = selected || items[0]?.formId || '';
   const current = items.find((item) => item.formId === expenseFormId);
   const claim = expenseFormId ? service.claim(expenseFormId) : null;
-  const participants = expenseFormId ? service.participants(expenseFormId) : [];
 
   useEffect(() => service.subscribe(() => setItems(service.list())), [service]);
   useEffect(() => {
@@ -167,7 +167,7 @@ export function ExpenseFlowPanel({ service, objectId }: { service: ExpenseFlowSe
   function run(action: () => string): void {
     try {
       setMessage(action());
-      if (expenseFormId && current) setProgress(service.read({ expenseFormId, actorId: current.applicantId }));
+      if (expenseFormId && current) setProgress(service.read({ expenseFormId, actorId }));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '操作失败。');
     }
@@ -250,7 +250,6 @@ export function ExpenseFlowPanel({ service, objectId }: { service: ExpenseFlowSe
           value={expenseFormId}
           onChange={(event) => {
             setSelected(event.target.value);
-            setActorId(service.list().find((item) => item.formId === event.target.value)?.applicantId ?? '');
             setProgress(null);
           }}
         >
@@ -261,14 +260,8 @@ export function ExpenseFlowPanel({ service, objectId }: { service: ExpenseFlowSe
             </option>
           ))}
         </select>
-        <label htmlFor="expense-flow-actor">当前操作人</label>
-        <select id="expense-flow-actor" value={actorId} onChange={(event) => setActorId(event.target.value)}>
-          {participants.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}（{item.id}）
-            </option>
-          ))}
-        </select>
+
+
         <label htmlFor="expense-flow-reason">退回原因</label>
         <input
           id="expense-flow-reason"

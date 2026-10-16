@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -111,6 +112,8 @@ export class ExpenseFlowService {
   }
 
   validateSubmit(input: ExpenseMutationInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.repository.snapshot();
     const record = state.idempotencyRecords.find((item) => item.key === input.idempotencyKey);
     if (record)
@@ -170,6 +173,8 @@ export class ExpenseFlowService {
   }
 
   validateReview(input: ExpenseReviewInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'approve');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.repository.snapshot();
     const operation = `form.${input.decision}`;
     const record = state.idempotencyRecords.find((item) => item.key === input.idempotencyKey);
@@ -249,6 +254,8 @@ export class ExpenseFlowService {
   }
 
   validateCorrect(input: ExpenseCorrectInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.repository.snapshot();
     const record = state.idempotencyRecords.find((item) => item.key === input.idempotencyKey);
     if (record)

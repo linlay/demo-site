@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import {
   CheckCircleOutlined,
   CloudUploadOutlined,
@@ -6,10 +7,9 @@ import {
   FolderOutlined,
   RollbackOutlined,
   SafetyCertificateOutlined,
-  SendOutlined,
-  UserOutlined
+  SendOutlined
 } from '@ant-design/icons';
-import { useAwcpAction } from '@app/awcp';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
@@ -108,7 +108,7 @@ export default function S02ResearchPage({
 }): ReactElement {
   const [service] = useState(() => new ResearchService(repository));
   const [items, setItems] = useState(() => service.list());
-  const [actorId, setActorId] = useState('EMP-003');
+  const actorId = useCurrentActor('EMP-003');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [citations, setCitations] = useState('');
@@ -119,7 +119,7 @@ export default function S02ResearchPage({
   const keys = useRef(new Map<string, string>());
   const reportId = items.some((item) => item.reportId === objectId) ? (objectId ?? '') : (items[0]?.reportId ?? '');
   const current = items.find((item) => item.reportId === reportId);
-  const view = current ? service.read({ reportId, actorId: current.authorId }) : null;
+  const view = current ? service.read({ reportId, actorId }) : null;
   const citationsFromView = view?.citations.join('\n') ?? '';
   const disclosuresFromView = view?.disclosures.join('\n') ?? '';
 
@@ -307,21 +307,8 @@ export default function S02ResearchPage({
           <div className={styles.formGrid}>
 
             <div className={styles.formGroup}>
-              <label htmlFor="s02-actor" className={styles.formLabel}>
-                <UserOutlined /> 当前操作角色
-              </label>
-              <select
-                id="s02-actor"
-                className={styles.select}
-                value={actorId}
-                onChange={(event) => setActorId(event.target.value)}
-              >
-                {service.actors().map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}（{item.id}）
-                  </option>
-                ))}
-              </select>
+
+
             </div>
 
             <div className={styles.formGroupFull}>

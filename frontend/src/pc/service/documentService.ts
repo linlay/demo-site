@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -312,6 +313,8 @@ function readErrors(
   return errors;
 }
 function patchErrors(state: DemoState, input: DocumentPatchInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = replayErrors(state, 'draft.patch', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...readErrors(state, input));
@@ -328,6 +331,8 @@ function patchErrors(state: DemoState, input: DocumentPatchInput): AwcpFieldErro
   return errors;
 }
 function approveErrors(state: DemoState, input: DocumentDecisionInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'approve');
+    if (workflowDenied.length) return workflowDenied;
   const errors = replayErrors(state, 'revision.approve', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...readErrors(state, input));
@@ -348,6 +353,8 @@ function approveErrors(state: DemoState, input: DocumentDecisionInput): AwcpFiel
   return errors;
 }
 function archiveErrors(state: DemoState, input: DocumentDecisionInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'approve');
+    if (workflowDenied.length) return workflowDenied;
   const errors = replayErrors(state, 'archive', input);
   if (errors.length || hasReplay(state, input.idempotencyKey)) return errors;
   errors.push(...readErrors(state, input));

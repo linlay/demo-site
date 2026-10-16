@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration, JsonObject } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -53,7 +54,7 @@ export default function O16ReportPage({
   const [service] = useState(() => new ReportArchiveService(repository));
   const [, setRevision] = useState(0);
   useEffect(() => service.subscribe(() => setRevision((value) => value + 1)), [service]);
-  const [actorId, setActorId] = useState(() => repository.snapshot().officeReportJobs.find((item) => item.id === objectId)?.actorId ?? 'EMP-004');
+  const actorId = useCurrentActor(() => repository.snapshot().officeReportJobs.find((item) => item.id === objectId)?.actorId ?? 'EMP-004');
   const [jobId, setJobId] = useState(objectId ?? 'RJOB-001');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -126,18 +127,7 @@ export default function O16ReportPage({
   useAwcpAction(saveAction);
   return (
     <main className={styles.page}>
-      <label>
-        操作人{' '}
-        <select aria-label="操作人" value={actorId} onChange={(e) => setActorId(e.target.value)}>
-          {state.employees
-            .filter((item) => item.active)
-            .map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id} {item.name}
-              </option>
-            ))}
-        </select>
-      </label>
+
       <section>
         <h2>报表任务</h2>
         <label>

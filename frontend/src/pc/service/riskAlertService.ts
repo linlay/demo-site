@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { RiskDossier, RiskInvestigationDraft } from '../../common/risk/dossier';
 import { dossierErrors, validDraftShape } from './riskDossierValidation';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
@@ -275,7 +276,14 @@ export class RiskAlertService {
     });
   }
   private assignErrors(state: DemoState, input: RiskAssignInput): AwcpFieldError[] {
-    const errors = [...baseErrors(state, input, ['new']), ...role(state, input.actorId, ['risk-monitor'])];
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
+    const errors = [...baseErrors(state, input, ['new']), ...role(state, input.actorId, ['risk-monitor', 'risk-investigator'])];
+    const actor = state.employees.find((item) => item.id === input.actorId && item.active);
+    if (actor && !actor.roles.includes('risk-monitor') && input.actorId !== input.assigneeId)
+      errors.push(fieldError(['assigneeId'], '调查人员只能领取本人处理的预警。'));
+    if (alertFor(state, input.alertId)?.assigneeId)
+      errors.push(fieldError(['alertId'], '预警已有调查人，不能重复领取或分派。'));
     if (
       !state.employees.some(
         (item) => item.id === input.assigneeId && item.active && item.roles.includes('risk-investigator')
@@ -304,6 +312,8 @@ export class RiskAlertService {
     );
   }
   private attachErrors(state: DemoState, input: RiskEvidenceInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [
       ...baseErrors(state, input, ['new', 'investigating', 'returned']),
       ...role(state, input.actorId, ['risk-monitor', 'risk-investigator'])
@@ -349,9 +359,12 @@ export class RiskAlertService {
     );
   }
   private draftErrors(state: DemoState, input: RiskDraftInput): AwcpFieldError[] {
-    const errors = [...baseErrors(state, input, ['investigating', 'returned']), ...role(state, input.actorId, ['risk-investigator'])];
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
+    const direct = state.workflowProfile === 'coarse-roles' && state.employees.some((employee) => employee.id === input.actorId && employee.active && employee.roles.includes('workflow-initiator'));
+    const errors = [...baseErrors(state, input, direct ? ['new', 'investigating', 'returned'] : ['investigating', 'returned']), ...role(state, input.actorId, ['risk-investigator'])];
     const alert = alertFor(state, input.alertId);
-    if (alert?.assigneeId !== input.actorId) errors.push(fieldError(['actorId'], '仅指定调查人可保存草稿。'));
+    if (alert?.assigneeId !== input.actorId && !(direct && alert?.status === 'new' && !alert.assigneeId)) errors.push(fieldError(['actorId'], '仅指定调查人可保存草稿。'));
     if (!validDraftShape(input.draft)) return [...errors, fieldError(['draft'], '草稿格式无效。')];
     errors.push(...dossierErrors(input.draft.dossier, state, false));
     for (const id of input.draft.evidenceIds) if (!state.riskEvidence.some((e) => e.id === id && e.alertId === input.alertId && e.verified)) errors.push(fieldError(['draft','evidenceIds'], '仅可选择已关联且已核验的证据。'));
@@ -364,20 +377,24 @@ export class RiskAlertService {
     return this.write('investigation.draft.save', input, (state) => this.draftErrors(state,input), (state, now) => {
       const alert = requireAlert(state, input.alertId);
       alert.investigationDraft = structuredClone(input.draft);
+      const from = alert.status;
+      if (state.workflowProfile === 'coarse-roles' && alert.status === 'new') { alert.assigneeId = input.actorId; alert.status = 'investigating'; }
       alert.businessVersion += 1;
-      audit(state, alert, 'investigation.draft.save', input.actorId, alert.status, now);
+      audit(state, alert, 'investigation.draft.save', input.actorId, from, now);
       return result(alert);
     });
   }
   private recordErrors(state: DemoState, input: RiskInvestigationInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [
-      ...baseErrors(state, input, ['investigating', 'returned']),
+      ...baseErrors(state, input, state.workflowProfile === 'coarse-roles' ? ['new', 'investigating', 'returned'] : ['investigating', 'returned']),
       ...role(state, input.actorId, ['risk-investigator']),
       ...textErrors(input.analysis, 'analysis', 500),
       ...(input.dossier === undefined ? [] : dossierErrors(input.dossier, state, true, input.conclusion, input.proposedDisposition))
     ];
     const alert = alertFor(state, input.alertId);
-    if (alert?.assigneeId !== input.actorId) errors.push(fieldError(['actorId'], '仅指定调查人可登记结论。'));
+    if (alert?.assigneeId !== input.actorId && !(state.workflowProfile === 'coarse-roles' && state.employees.some((employee) => employee.id === input.actorId && employee.active && employee.roles.includes('workflow-initiator')) && alert?.status === 'new' && !alert.assigneeId)) errors.push(fieldError(['actorId'], '仅指定调查人可登记结论。'));
     if (!['false-positive', 'confirmed'].includes(input.conclusion))
       errors.push(fieldError(['conclusion'], '结论无效。'));
     if (!['close', 'escalate'].includes(input.proposedDisposition))
@@ -409,6 +426,7 @@ export class RiskAlertService {
         const alert = requireAlert(state, input.alertId);
         const from = alert.status;
         alert.status = 'pending-review';
+        if (state.workflowProfile === 'coarse-roles') alert.assigneeId = input.actorId;
         alert.businessVersion += 1;
         const id = nextId(
           'RINV',
@@ -436,6 +454,8 @@ export class RiskAlertService {
     );
   }
   private reviewErrors(state: DemoState, input: RiskReviewInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'approve');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [
       ...baseErrors(state, input, ['pending-review']),
       ...role(state, input.actorId, ['risk-reviewer']),
@@ -487,6 +507,8 @@ export class RiskAlertService {
     );
   }
   private closeErrors(state: DemoState, input: RiskCloseInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const errors = [...baseErrors(state, input, ['approved']), ...role(state, input.actorId, ['risk-monitor'])];
     const alert = alertFor(state, input.alertId);
     const investigation = state.riskInvestigations.find((item) => item.id === alert?.latestInvestigationId);

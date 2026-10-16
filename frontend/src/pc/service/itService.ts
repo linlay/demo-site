@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -187,6 +188,8 @@ export class ItService {
     };
   }
   validateRequest(input: AccessRequestInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.snapshot();
     const key = keyCheck(state, 'access.request', input);
     if (key.record || key.errors.length) return key.errors;
@@ -251,6 +254,8 @@ export class ItService {
     });
   }
   validateAssign(input: TicketAssignInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.snapshot();
     const key = keyCheck(state, 'ticket.assign', input);
     if (key.record || key.errors.length) return key.errors;
@@ -276,6 +281,8 @@ export class ItService {
     });
   }
   validateResolve(input: TicketResolveInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.snapshot();
     const key = keyCheck(state, 'ticket.resolve', input);
     if (key.record || key.errors.length) return key.errors;
@@ -298,6 +305,8 @@ export class ItService {
     });
   }
   validateClose(input: TicketCloseInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(this.repository.snapshot(), input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
     const state = this.snapshot();
     const key = keyCheck(state, 'ticket.close', input);
     if (key.record || key.errors.length) return key.errors;

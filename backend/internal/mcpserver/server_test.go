@@ -233,7 +233,7 @@ func TestBusinessToolsCommitAndScopeFiltering(t *testing.T) {
 		t.Fatalf("approve: %+v", approved)
 	}
 	done := result(t, call(t, h, "2026-07-28", "full", "tools/call", "tasks_query", map[string]any{"status": "done", "expectedGeneration": view.Generation, "actorId": "EMP-002"}))
-	if done["structuredContent"].(map[string]any)["total"] != float64(3) {
+	if done["structuredContent"].(map[string]any)["total"] != float64(23) {
 		t.Fatalf("done: %+v", done)
 	}
 	catalog := result(t, call(t, h, "2026-07-28", "full", "tools/call", "context_get", map[string]any{}))

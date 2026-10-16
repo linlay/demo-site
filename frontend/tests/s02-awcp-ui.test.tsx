@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import type { AwcpActionResponse, AwcpManualSection, JsonObject } from '@app/awcp';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
@@ -13,12 +14,14 @@ import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 function renderPage(repository: DemoRepository, container: HTMLDivElement) {
   const route = resolveRoute('/scenes/S02');
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-003');
   return {
     root,
+    switchUser: identity.switchUser,
     element: (
-      <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+      <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
         <S02ResearchPage repository={repository} />
-      </AppProviders>
+      </AppProviders></identity.Provider>
     )
   };
 }
@@ -267,7 +270,7 @@ it('uses the same research service from page controls', async () => {
   const repository = new DemoRepository();
   const container = document.createElement('div');
   document.body.append(container);
-  const { root, element } = renderPage(repository, container);
+  const { root, element, switchUser } = renderPage(repository, container);
   try {
     await act(async () => root.render(element));
     const click = async (label: string) => {
@@ -275,14 +278,7 @@ it('uses the same research service from page controls', async () => {
       if (!button) throw new Error(`Missing button: ${label}`);
       await act(async () => button.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     };
-    const actor = async (value: string) => {
-      const select = container.querySelector<HTMLSelectElement>('#s02-actor');
-      if (!select) throw new Error('Actor selector is missing.');
-      await act(async () => {
-        select.value = value;
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-    };
+    const actor = switchUser;
     await click('检查引用与披露');
     await click('提交审阅');
     await actor('EMP-005');

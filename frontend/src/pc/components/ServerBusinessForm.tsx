@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type {
   Approval,
+  ApprovalTemplate,
   BusinessAsset,
   BusinessDetail,
   BusinessPage,
@@ -22,6 +23,7 @@ export function ServerBusinessForm({
   actor,
   service,
   editing,
+  template,
   onClose,
   onSaved
 }: {
@@ -29,6 +31,7 @@ export function ServerBusinessForm({
   actor: SessionEmployee;
   service: BusinessService;
   editing?: Approval | Travel | Expense;
+  template?: ApprovalTemplate;
   onClose(): void;
   onSaved(result: BusinessResult): void;
 }): ReactElement {
@@ -44,13 +47,22 @@ export function ServerBusinessForm({
   const [assets, setAssets] = useState<BusinessAsset[]>([]);
   const [title, setTitle] = useState(approval?.title ?? '');
   const [description, setDescription] = useState(approval?.description ?? '');
+  const [fields, setFields] = useState<Record<string, string>>(approval?.fields ?? {});
+  const [reviewerId, setReviewer] = useState(
+    approval?.reviewerId ??
+      demo?.session.employees.find(
+        (e) => e.active && e.id !== actor.id && e.departmentId === actor.departmentId && e.roles.includes('manager')
+      )?.id ??
+      demo?.session.employees.find((e) => e.active && e.id !== actor.id && e.roles.includes('manager'))?.id ??
+      ''
+  );
   const [materialIds, setMaterialIds] = useState(approval?.materialIds ?? []);
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [amount, setAmount] = useState(editing && 'amountCents' in editing ? String(editing.amountCents) : '');
-  const [travelFormId, setTravel] = useState(expense?.travelFormId ?? 'FORM-001');
+  const [travelFormId, setTravel] = useState(expense?.travelFormId ?? '');
   const [receipts, setReceipts] = useState<ExpenseReceipt[]>(
     expense?.receipts ?? [{ invoiceNo: '', assetId: '', amountCents: 0 }]
   );
@@ -84,11 +96,13 @@ export function ServerBusinessForm({
     if (kind === 'expense')
       void service
         .call<BusinessPage<Travel>>('travels_query', { actorId: actor.id, pageSize: 100 }, controller.signal)
-        .then((p) =>
-          setTrips(
-            p.items.filter((v) => v.applicantId === actor.id && (v.status === 'submitted' || v.status === 'approved'))
-          )
-        )
+        .then((p) => {
+          const available = p.items.filter(
+            (v) => v.applicantId === actor.id && (v.status === 'submitted' || v.status === 'approved')
+          );
+          setTrips(available);
+          setTravel((current) => current || available[0]?.id || '');
+        })
         .catch((e: unknown) => {
           if (!controller.signal.aborted) setError(e instanceof Error ? e.message : t('查询失败，请重试。'));
         });
@@ -122,7 +136,16 @@ export function ServerBusinessForm({
       const common = { actorId: actor.id, expectedVersion: editing?.businessVersion ?? 0 };
       const input =
         kind === 'approval'
-          ? { ...common, requestId: approval?.id ?? null, title, description, materialIds }
+          ? {
+              ...common,
+              requestId: approval?.id ?? null,
+              title,
+              description,
+              materialIds,
+              templateId: template?.id ?? approval?.templateId ?? 'office',
+              fields,
+              reviewerId
+            }
           : kind === 'travel'
             ? {
                 ...common,
@@ -189,22 +212,24 @@ export function ServerBusinessForm({
     <section className={styles.editor}>
       <header>
         <h2>
-          {t(
-            kind === 'draft'
-              ? '编辑草稿'
-              : expense
-                ? '补正费用'
-                : approval
-                  ? '重新提交申请'
-                  : kind === 'approval'
-                    ? '新建申请'
-                    : kind === 'travel'
-                      ? '提交差旅申请'
-                      : '核验费用并创建草稿'
-          )}
+          {template
+            ? t(template.name)
+            : t(
+                kind === 'draft'
+                  ? '编辑草稿'
+                  : expense
+                    ? '补正费用'
+                    : approval
+                      ? '重新提交申请'
+                      : kind === 'approval'
+                        ? '新建申请'
+                        : kind === 'travel'
+                          ? '提交差旅申请'
+                          : '核验费用并创建草稿'
+              )}
         </h2>
         <button type="button" disabled={busy} onClick={onClose}>
-          {t('关闭')}
+          {t('返回')}
         </button>
       </header>
       <form
@@ -215,6 +240,48 @@ export function ServerBusinessForm({
       >
         {kind === 'approval' && (
           <div className={styles.formGrid}>
+            {template?.fields.map((field) => (
+              <label key={field.id}>
+                {t(field.label)}
+                {field.type === 'select' ? (
+                  <select
+                    required
+                    value={fields[field.id] ?? ''}
+                    onChange={(e) => setFields({ ...fields, [field.id]: e.target.value })}
+                  >
+                    <option value="">{t('请选择')}</option>
+                    {field.options?.map((option) => (
+                      <option key={option} value={option}>
+                        {t(option)}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    required
+                    type={field.type}
+                    min={field.type === 'number' ? '0.01' : undefined}
+                    step={field.id === 'quantity' ? '1' : 'any'}
+                    maxLength={300}
+                    value={fields[field.id] ?? ''}
+                    onChange={(e) => setFields({ ...fields, [field.id]: e.target.value })}
+                  />
+                )}
+              </label>
+            ))}
+            <label>
+              {t('审批人')}
+              <select required value={reviewerId} onChange={(e) => setReviewer(e.target.value)}>
+                <option value="">{t('请选择')}</option>
+                {demo?.session.employees
+                  .filter((e) => e.active && e.id !== actor.id && e.roles.includes('manager'))
+                  .map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
             <label>
               {t('标题')}
               <input required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -230,6 +297,7 @@ export function ServerBusinessForm({
             </label>
             <fieldset>
               <legend>{t('申请资料')}</legend>
+              {materials.length > 0 && !materialIds.length && <p>{t('请选择相关申请资料')}</p>}
               {materials.map((m) => (
                 <label className={styles.check} key={m.id}>
                   <input
@@ -303,7 +371,7 @@ export function ServerBusinessForm({
               {t('申请人')}
               <select value={applicantId} onChange={(e) => setApplicant(e.target.value)}>
                 {demo?.session.employees
-                  .filter((e) => e.active)
+                  .filter((e) => e.active && e.roles.includes('employee'))
                   .map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.name}
@@ -548,7 +616,7 @@ export function ServerBusinessForm({
             {error}
           </p>
         )}
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy || (kind === 'approval' && (!materialIds.length || !reviewerId))}>
           {t(busy ? '正在办理…' : kind === 'expense' ? '核验并保存' : kind === 'draft' ? '保存草稿' : '提交申请')}
         </button>
       </form>

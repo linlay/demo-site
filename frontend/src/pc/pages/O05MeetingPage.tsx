@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -68,12 +69,12 @@ export default function O05MeetingPage({
   objectId?: string;
 }): ReactElement {
   const [service] = useState(() => new MeetingService(repository));
-  const [actorId] = useState(() => repository.snapshot().meetings.find((item) => item.id === objectId)?.organizerId ?? 'EMP-001');
+  const actorId = useCurrentActor(() => repository.snapshot().meetings.find((item) => item.id === objectId)?.organizerId ?? 'EMP-001');
   const [selectedMeeting, setSelectedMeeting] = useState(objectId?.startsWith('MTG-') ? objectId : 'MTG-001');
   const [moveResourceId, setMoveResourceId] = useState('');
   const [moveStartAt, setMoveStartAt] = useState('');
   const [moveEndAt, setMoveEndAt] = useState('');
-  const [minutesActorId, setMinutesActorId] = useState('EMP-003');
+  const minutesActorId = useCurrentActor('EMP-003');
   const [selectedMinutesMeeting, setSelectedMinutesMeeting] = useState('MTG-003');
   const [attendeeIds, setAttendeeIds] = useState<string[]>([]);
   const [agenda, setAgenda] = useState('');
@@ -237,18 +238,8 @@ export default function O05MeetingPage({
         <h2>会议纪要</h2>
         <p>模板标识：虚构会议纪要模板。MTG-003 已结束，可用于立即登记。</p>
         <div className={styles.grid}>
-          <label htmlFor="o05-minutes-actor">纪要登记人</label>
-          <select
-            id="o05-minutes-actor"
-            value={minutesActorId}
-            onChange={(event) => setMinutesActorId(event.target.value)}
-          >
-            {service.actors().map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}（{item.id}）
-              </option>
-            ))}
-          </select>
+
+
           <label htmlFor="o05-minutes-meeting">会议</label>
           <select
             id="o05-minutes-meeting"

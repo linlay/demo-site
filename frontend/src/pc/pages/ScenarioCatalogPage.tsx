@@ -17,7 +17,6 @@ export default function ScenarioCatalogPage({ navigate }: { navigate(path: strin
   return (
     <section className={styles.catalogContainer} aria-label={t('站内导航')}>
       <header className={styles.heading}>
-        <h1>{t('站内导航')}</h1>
         <span>
           {locale === 'zh-CN'
             ? `${matches.length} / ${SCENARIOS.length} 个场景`

@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import { useEffect, useState } from 'react';
 import type { DemoRepository } from '../../common/store/repository';
 import type { OfficeApprovalRequest } from '../../common/fixtures/types';
@@ -29,7 +30,7 @@ export default function ApprovalCenterPage({
   const { t, locale } = usePreferences();
   const demo = useDemoSession();
   const [service] = useState(() => new ApprovalService(repository));
-  const [actorId, setActorId] = useState('EMP-002');
+  const actorId = useCurrentActor('EMP-002');
   const [tab, setTab] = useState<Tab>('pending');
   const [draft, setDraft] = useState<Filter>(empty);
   const [filter, setFilter] = useState<Filter>(empty);
@@ -195,23 +196,7 @@ export default function ApprovalCenterPage({
             setPage(1);
           }}
         >
-          <label>
-            {t('当前操作人')}
-            <select
-              value={actorId}
-              onChange={(event) => {
-                setActorId(event.target.value);
-                setSelected({});
-                setPage(1);
-              }}
-            >
-              {service.actors().map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name} ({a.id})
-                </option>
-              ))}
-            </select>
-          </label>
+
           <label>
             {t('摘要')}
             <input value={draft.summary} onChange={(event) => setDraft({ ...draft, summary: event.target.value })} />
@@ -306,7 +291,7 @@ export default function ApprovalCenterPage({
             </thead>
             <tbody>
               {pageRows.map((row) => {
-                const path = `/scenes/O08/objects/${row.id}?actor=${encodeURIComponent(actorId)}`;
+                const path = `/scenes/O08/objects/${row.id}`;
                 return (
                   <tr key={row.id}>
                     <td>

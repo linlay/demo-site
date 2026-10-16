@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import type { AwcpActionResponse, AwcpManualSection, JsonObject } from '@app/awcp';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
@@ -13,12 +14,14 @@ import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 function render(repository: DemoRepository, container: HTMLDivElement) {
   const route = resolveRoute('/scenes/S03');
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-008');
   return {
     root,
+    switchUser: identity.switchUser,
     element: (
-      <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+      <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
         <S03IbProjectPage repository={repository} />
-      </AppProviders>
+      </AppProviders></identity.Provider>
     )
   };
 }
@@ -73,7 +76,7 @@ it('discovers S03 through both manual levels and invokes normal, blocked and ret
     });
     const wrong = repository.snapshot();
     expect(
-      await invoke(review, { ...example(review), actorId: 'EMP-011', idempotencyKey: 's03-wrong-reviewer' })
+      await invoke(review, { ...example(review), actorId: 'EMP-004', idempotencyKey: 's03-wrong-reviewer' })
     ).toMatchObject({ ok: false, error: { code: 'invalid_arguments', details: { executionStarted: false } } });
     expect(repository.snapshot()).toEqual(wrong);
     expect(await invoke(review, example(review))).toMatchObject({
@@ -178,7 +181,7 @@ it('uses the same project service from page controls', async () => {
   const repository = new DemoRepository();
   const container = document.createElement('div');
   document.body.append(container);
-  const { root, element } = render(repository, container);
+  const { root, element, switchUser } = render(repository, container);
   try {
     await act(async () => root.render(element));
     const click = async (label: string) => {
@@ -186,18 +189,11 @@ it('uses the same project service from page controls', async () => {
       if (!button) throw new Error(`Missing button: ${label}`);
       await act(async () => button.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     };
-    const actor = async (id: string) => {
-      const select = container.querySelector<HTMLSelectElement>('#s03-actor');
-      if (!select) throw new Error('Actor selector is missing.');
-      await act(async () => {
-        select.value = id;
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-    };
+    const actor = switchUser;
     await click('提交质控');
     await actor('EMP-010');
     await click('审议批准');
-    await actor('EMP-011');
+    await actor('EMP-004');
     await click('审议批准');
     await actor('EMP-008');
     await click('归档');

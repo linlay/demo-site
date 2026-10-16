@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -102,7 +103,7 @@ export default function S05InstitutionPage({
   const [service] = useState(() => new InstitutionService(repository));
   const [, setRevision] = useState(0);
   useEffect(() => service.subscribe(() => setRevision((value) => value + 1)), [service]);
-  const [actorId, setActorId] = useState('EMP-001');
+  const actorId = useCurrentActor('EMP-001');
   const needId = objectId ?? 'SNEED-001';
   const [materialIds, setMaterialIds] = useState('');
   const [revisionReason, setRevisionReason] = useState('');
@@ -119,7 +120,7 @@ export default function S05InstitutionPage({
   const roadshow = state.roadshows.find((item) => item.id === need?.roadshowId);
   const meeting = state.meetings.find((item) => item.id === roadshow?.meetingId);
   const profile = state.institutionProfiles.find((item) => item.id === need?.institutionId);
-  const entitlement = need ? service.entitlement({ actorId: profile?.salesId ?? 'EMP-001', needId: need.id }) : null;
+  const entitlement = need ? service.entitlement({ actorId, needId: need.id }) : null;
   const savedMaterialIds = need?.requestedMaterialIds.join(',') ?? '';
   useEffect(() => setMaterialIds(savedMaterialIds), [needId, need?.businessVersion, savedMaterialIds]);
   function run(task: () => { needId: string; status: string; businessVersion: number }): void {
@@ -258,22 +259,7 @@ export default function S05InstitutionPage({
   useAwcpAction(summaryAction);
   return (
     <main className={styles.page}>
-      <label>
-        操作人{' '}
-        <select aria-label="操作人" value={actorId} onChange={(e) => setActorId(e.target.value)}>
-          {state.employees
-            .filter(
-              (item) =>
-                item.active &&
-                item.roles.some((role) => ['institution-sales', 'research-service', 'event-organizer'].includes(role))
-            )
-            .map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id} {item.name}
-              </option>
-            ))}
-        </select>
-      </label>
+
       <section>
         <h2>机构需求与服务范围</h2>
         <p>

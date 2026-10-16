@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -72,7 +73,7 @@ export default function O13AdminPage({
   const [service] = useState(() => new AdminService(repository));
   const [, setRevision] = useState(0);
   useEffect(() => service.subscribe(() => setRevision((value) => value + 1)), [service]);
-  const [actorId, setActorId] = useState('EMP-001');
+  const actorId = useCurrentActor('EMP-001');
   const [assetId, setAssetId] = useState(() => objectId?.startsWith('EQ-') ? objectId : repository.snapshot().repairTickets.find((item) => item.id === objectId)?.assetId ?? 'EQ-001');
   const [holderId, setHolderId] = useState('');
   const [ticketId, setTicketId] = useState(() => objectId?.startsWith('REP-') ? objectId : 'REP-001');
@@ -153,18 +154,7 @@ export default function O13AdminPage({
 
   return (
     <main className={styles.page}>
-      <label>
-        操作人{' '}
-        <select id="o13-actor" value={actorId} onChange={(e) => setActorId(e.target.value)}>
-          {state.employees
-            .filter((item) => item.active)
-            .map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id} {item.name}
-              </option>
-            ))}
-        </select>
-      </label>
+
       <section>
         <h2>设备领用与归还</h2>
         <label>

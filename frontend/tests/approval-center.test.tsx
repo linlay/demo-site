@@ -9,7 +9,7 @@ function required<T>(value: T | null | undefined): T {
   return value;
 }
 
-it('filters requests, opens a detail with the selected actor and approves only checked requests', async () => {
+it('filters requests, opens a detail without an identity hint and approves only checked requests', async () => {
   const repository = new DemoRepository();
   const container = document.createElement('div');
   const root = createRoot(container);
@@ -23,7 +23,7 @@ it('filters requests, opens a detail with the selected actor and approves only c
     expect(pending.length).toBeGreaterThan(0);
     const link = required(container.querySelector<HTMLAnchorElement>('tbody a'));
     await act(async () => link.click());
-    expect(navigate).toHaveBeenCalledWith(expect.stringContaining('?actor=EMP-002'));
+    expect(navigate).toHaveBeenCalledWith(expect.stringMatching(/^\/scenes\/O08\/objects\/[^?]+$/));
     const checkbox = required(container.querySelector<HTMLInputElement>(`input[aria-label="事项 ${pending[0].id}"]`));
     await act(async () =>
       Simulate.change(checkbox, { target: { checked: true } } as unknown as Parameters<typeof Simulate.change>[1])

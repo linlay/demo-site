@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import type { AwcpActionResponse, AwcpManualSection, JsonObject } from '@app/awcp';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
@@ -12,12 +13,14 @@ import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 function render(repository: DemoRepository, container: HTMLDivElement) {
   const route = resolveRoute('/scenes/O06');
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-003');
   return {
     root,
+    identity,
     element: (
-      <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+      <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
         <O06DocumentPage repository={repository} />
-      </AppProviders>
+      </AppProviders></identity.Provider>
     )
   };
 }
@@ -60,7 +63,7 @@ it('discovers O06 through both Core manual levels and replays revision, review a
       ok: true,
       result: {
         data: {
-          items: [expect.objectContaining({ documentId: 'DOC-001', source: '虚构办公制度库', documentVersion: 1 })]
+          items: [expect.objectContaining({ documentId: 'DOC-001', source: '办公制度库', documentVersion: 1 })]
         }
       }
     });
@@ -161,7 +164,7 @@ it('shares document state between page controls and service records', async () =
   const repository = new DemoRepository();
   const container = document.createElement('div');
   document.body.append(container);
-  const { root, element } = render(repository, container);
+  const { root, element, identity } = render(repository, container);
   try {
     await act(async () => root.render(element));
     const click = async (label: string) => {
@@ -182,6 +185,7 @@ it('shares document state between page controls and service records', async () =
       repository.snapshot().documentVersions.find((item) => item.documentId === 'DOC-001' && item.version === 2)
         ?.blocks[1].text
     ).toBe('页面提交的虚构修订内容。');
+    await identity.switchUser('EMP-004');
     await click('批准当前修订');
     await click('归档已批准版本');
     expect(repository.snapshot().officeDocuments.find((item) => item.id === 'DOC-001')).toMatchObject({

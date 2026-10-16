@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import { useAwcpAction, type AwcpActionRegistration } from '@app/awcp';
 import { useState, type ReactElement } from 'react';
 
@@ -11,7 +12,7 @@ const EXAMPLE: IbCreateInput = { actorId: 'EMP-008', issuerId: 'ISS-001', title:
 
 export default function S03IbProjectNewPage({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new IbProjectService(repository));
-  const [actorId, setActorId] = useState('');
+  const actorId = useCurrentActor('EMP-001');
   const [issuerId, setIssuerId] = useState('');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
@@ -27,7 +28,7 @@ export default function S03IbProjectNewPage({ repository }: { repository: DemoRe
     catch (error) { setMessage(error instanceof Error ? error.message : '创建项目失败。'); }
   }
   return <section className={styles.page} aria-label="新建投行项目表单">
-    <label>项目经理 <select value={actorId} onChange={(event) => setActorId(event.target.value)} required><option value="">请选择</option>{service.actors().filter((actor) => actor.roles.includes('ib-manager')).map((actor) => <option key={actor.id} value={actor.id}>{actor.name}（{actor.id}）</option>)}</select></label>
+
     <label>发行人 <select value={issuerId} onChange={(event) => setIssuerId(event.target.value)} required><option value="">请选择</option>{service.issuers().map((issuer) => <option key={issuer.id} value={issuer.id}>{issuer.name}（{issuer.id}）</option>)}</select></label>
     <label>项目名称 <input value={title} onChange={(event) => setTitle(event.target.value)} required /></label>
     <button type="button" disabled={!actorId || !issuerId || !title.trim()} onClick={submit}>创建项目并查看详情</button>

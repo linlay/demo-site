@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -178,6 +179,8 @@ function audit(
 }
 
 function leaveErrors(state: DemoState, input: LeaveSubmitInput, today: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = idempotency(state, 'leave.submit', input);
   if (key.replay || key.errors.length) return key.errors;
   const errors = actorErrors(state, input.actorId, input.employeeId, false);
@@ -212,6 +215,8 @@ function leaveErrors(state: DemoState, input: LeaveSubmitInput, today: string): 
 }
 
 function attendanceErrors(state: DemoState, input: AttendanceCorrectInput, today: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = idempotency(state, 'attendance.correct', input);
   if (key.replay || key.errors.length) return key.errors;
   const errors = actorErrors(state, input.actorId, input.employeeId, false);
@@ -245,6 +250,8 @@ const REQUIRED_MATERIALS: Record<PersonnelChange['kind'], Array<DemoState['perso
 };
 
 function personnelErrors(state: DemoState, input: PersonnelProcessInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = idempotency(state, 'personnel.process', input);
   if (key.replay || key.errors.length) return key.errors;
   const errors = actorErrors(state, input.actorId, input.employeeId, true);
@@ -304,6 +311,8 @@ function trainingQueryErrors(state: DemoState, input: TrainingQueryInput): AwcpF
   return errors;
 }
 function trainingEnrollErrors(state: DemoState, input: TrainingEnrollInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = idempotency(state, 'training.enroll', input);
   if (key.replay || key.errors.length) return key.errors;
   const errors = actorErrors(state, input.actorId, input.employeeId, false);
@@ -319,6 +328,8 @@ function trainingEnrollErrors(state: DemoState, input: TrainingEnrollInput): Awc
   return errors;
 }
 function trainingCompleteErrors(state: DemoState, input: TrainingCompleteInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = idempotency(state, 'training.complete', input);
   if (key.replay || key.errors.length) return key.errors;
   const errors = actorErrors(state, input.actorId, input.employeeId, true);

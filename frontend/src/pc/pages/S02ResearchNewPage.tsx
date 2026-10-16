@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import { useAwcpAction, type AwcpActionRegistration } from '@app/awcp';
 import { useState, type ReactElement } from 'react';
 
@@ -11,7 +12,7 @@ const EXAMPLE: ResearchCreateInput = { actorId: 'EMP-003', topicTitle: '虚构�
 
 export default function S02ResearchNewPage({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new ResearchService(repository));
-  const [actorId, setActorId] = useState('');
+  const actorId = useCurrentActor('EMP-001');
   const [topicTitle, setTopicTitle] = useState('');
   const [message, setMessage] = useState('');
   const action: AwcpActionRegistration<ResearchCreateInput> = {
@@ -26,7 +27,7 @@ export default function S02ResearchNewPage({ repository }: { repository: DemoRep
     catch (error) { setMessage(error instanceof Error ? error.message : '建立课题失败。'); }
   }
   return <section className={styles.page} aria-label="新建研报课题表单">
-    <label>分析师 <select value={actorId} onChange={(event) => setActorId(event.target.value)} required><option value="">请选择</option>{service.actors().filter((actor) => actor.roles.includes('analyst')).map((actor) => <option key={actor.id} value={actor.id}>{actor.name}（{actor.id}）</option>)}</select></label>
+
     <label>课题名称 <input value={topicTitle} onChange={(event) => setTopicTitle(event.target.value)} required /></label>
     <button type="button" disabled={!actorId || !topicTitle.trim()} onClick={submit}>建立课题并查看详情</button>
     {message && <p role="alert">{message}</p>}

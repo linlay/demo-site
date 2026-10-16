@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import type { AwcpActionResponse, AwcpManualSection, JsonObject } from '@app/awcp';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
@@ -12,12 +13,14 @@ import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 function render(repository: DemoRepository, container: HTMLDivElement) {
   const route = resolveRoute('/scenes/O08');
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-001');
   return {
     root,
+    identity,
     element: (
-      <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+      <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
         <O08ApprovalPage repository={repository} />
-      </AppProviders>
+      </AppProviders></identity.Provider>
     )
   };
 }
@@ -156,7 +159,7 @@ it('uses the shared approval service from page controls', async () => {
   const repository = new DemoRepository();
   const container = document.createElement('div');
   document.body.append(container);
-  const { root, element } = render(repository, container);
+  const { root, element, identity } = render(repository, container);
   try {
     await act(async () => root.render(element));
     const click = async (label: string) => {
@@ -180,13 +183,7 @@ it('uses the shared approval service from page controls', async () => {
       businessVersion: 3,
       currentTaskId: 'APPTODO-004'
     });
-    const select = container.querySelector<HTMLSelectElement>('#o08-actor');
-    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set;
-    if (!select || !setter) throw new Error('Actor selector is missing.');
-    await act(async () => {
-      setter.call(select, 'EMP-002');
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-    });
+    await identity.switchUser('EMP-002');
     await fill('#o08-opinion', '资料齐全，同意。');
     await click('通过');
     expect(repository.snapshot().officeApprovalRequests[0]).toMatchObject({ status: 'approved', businessVersion: 4 });

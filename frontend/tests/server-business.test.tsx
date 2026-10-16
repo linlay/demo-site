@@ -1,7 +1,7 @@
 import { DemoApi, type Approval, type BusinessPage, type DemoSession } from '@app/api';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
+import { act, Simulate } from 'react-dom/test-utils';
 import { expect, it, vi } from 'vitest';
 import { DemoSessionContext } from '../src/app/demoSessionContext';
 import { AppProviders } from '../src/app/AppProviders';
@@ -145,7 +145,11 @@ it('loads server approval rows in StrictMode and exposes only the active page Ac
   const fetcher = vi
     .fn<typeof fetch>()
     .mockImplementation(async (url) =>
-      String(url).includes('approvals_query') ? json(page) : json({ valid: true, fieldErrors: [] })
+      String(url).includes('approval_center_query')
+        ? json({ ...page, items: page.items.map((item) => ({ ...item, kind: 'approval' })) })
+        : String(url).includes('approval_templates_list') || String(url).includes('approval_materials_list')
+          ? json([])
+          : json({ valid: true, fieldErrors: [] })
     );
   const api = new DemoApi(fetcher);
   api.adoptSession(session);
@@ -185,5 +189,102 @@ it('loads server approval rows in StrictMode and exposes only the active page Ac
     await act(async () => root.unmount());
     container.remove();
     window.history.replaceState(null, '', previous);
+  }
+});
+
+it('offers typed request choices and submits their fields with the selected reviewer', async () => {
+  const templates = [
+    {
+      id: 'risk',
+      name: '风险处置审批',
+      category: '风险监控',
+      description: '提交风险事项',
+      fields: [
+        { id: 'riskObject', label: '监控对象', type: 'text' },
+        { id: 'riskLevel', label: '风险等级', type: 'select', options: ['低', '中', '高'] }
+      ]
+    },
+    { id: 'investment', name: '投行项目立项', category: '投行项目', description: '提交项目', fields: [] },
+    { id: 'institution', name: '机构服务申请', category: '机构服务', description: '提交服务', fields: [] },
+    { id: 'suitability', name: '客户适当性审核', category: '客户适当性', description: '提交审核', fields: [] }
+  ];
+  const fetcher = vi.fn<typeof fetch>().mockImplementation(async (url) => {
+    const op = String(url);
+    if (op.includes('approval_templates_list')) return json(templates);
+    if (op.includes('approval_materials_list')) return json([{ id: 'APMAT-001', name: '业务事项说明' }]);
+    if (op.includes('approval_submit'))
+      return json({
+        id: 'APPR-010',
+        status: 'submitted',
+        businessVersion: 1,
+        taskId: 'TODO-010',
+        generation: 'g1',
+        revision: 1
+      });
+    return json({ items: [], total: 0, page: 1, pageSize: 20, generation: 'g1', revision: 0 });
+  });
+  const api = new DemoApi(fetcher);
+  api.adoptSession(session);
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  const navigate = vi.fn();
+  const render = (formType: string) =>
+    root.render(
+      <DemoSessionContext.Provider
+        value={{ session, api, reset: async () => undefined, refresh: async () => undefined }}
+      >
+        <AppProviders site={siteForRoute(resolveRoute('/scenes/O08/new/risk'))} scopeKey="test.approval.new">
+          <ServerBusinessPage scene="O08" formType={formType} navigate={navigate} />
+        </AppProviders>
+      </DemoSessionContext.Provider>
+    );
+  try {
+    await act(async () => render('default'));
+    for (const name of ['风险处置审批', '投行项目立项', '机构服务申请', '客户适当性审核'])
+      expect(container.textContent).toContain(name);
+    expect(container.textContent).not.toContain('数据分析');
+    const risk = [...container.querySelectorAll('button')].find((button) =>
+      button.textContent?.includes('风险处置审批')
+    );
+    if (!risk) throw new Error('Missing request choice');
+    await act(async () => risk.click());
+    expect(navigate).toHaveBeenCalledWith('/scenes/O08/new/risk');
+    await act(async () => render('risk'));
+    const change = async (label: string, value: string) => {
+      const control = [...container.querySelectorAll('label')]
+        .find((element) => element.textContent?.trim().startsWith(label))
+        ?.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input,select,textarea');
+      if (!control) throw new Error(`Missing ${label}`);
+      await act(async () => {
+        control.value = value;
+        Simulate.change(control);
+      });
+    };
+    await change('监控对象', '华辰科技');
+    await change('风险等级', '高');
+    await change('标题', '持仓限额处置');
+    await change('申请说明', '请审核处置方案');
+    const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    if (!checkbox) throw new Error('Missing material');
+    await act(async () => {
+      checkbox.checked = true;
+      Simulate.change(checkbox);
+    });
+    const form = container.querySelector('form');
+    if (!form) throw new Error('Missing request form');
+    await act(async () => Simulate.submit(form));
+    const call = fetcher.mock.calls.find(([url]) => String(url).includes('approval_submit'));
+    expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({
+      templateId: 'risk',
+      fields: { riskObject: '华辰科技', riskLevel: '高' },
+      reviewerId: 'EMP-002',
+      materialIds: ['APMAT-001'],
+      actorId: 'EMP-001'
+    });
+    expect(navigate).toHaveBeenLastCalledWith('/scenes/O08/objects/APPR-010');
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
   }
 });

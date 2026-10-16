@@ -53,6 +53,7 @@ export function AppLink({ href, navigate, children, className, title, ariaCurren
 interface AppShellProps extends PropsWithChildren {
   navigate(path: string): void;
   repository: DemoRepository;
+  fillContent?: boolean;
 }
 
 interface NavMenuItem {
@@ -64,7 +65,7 @@ interface NavMenuItem {
   group?: string;
 }
 
-export function AppShell({ children, navigate }: AppShellProps): ReactElement {
+export function AppShell({ children, navigate, repository, fillContent = false }: AppShellProps): ReactElement {
   const { t } = usePreferences();
   const [collapsed, setCollapsed] = useState(false);
   const { pathname } = useBrowserPath();
@@ -142,7 +143,7 @@ export function AppShell({ children, navigate }: AppShellProps): ReactElement {
   }, [pathname, t]);
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${fillContent ? styles.fillShell : ''}`}>
       {/* Collapsible Enterprise Sidebar */}
       <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
         <div className={styles.sidebarHeader}>
@@ -234,8 +235,8 @@ export function AppShell({ children, navigate }: AppShellProps): ReactElement {
             <McpConnection />
             <RealtimeControls />
             <AppearanceControls />
-            <SessionMenu />
           </div>
+          <div className={styles.accountControl}><SessionMenu repository={repository} /></div>
         </header>
 
         <main className={styles.mainContent}>{children}</main>

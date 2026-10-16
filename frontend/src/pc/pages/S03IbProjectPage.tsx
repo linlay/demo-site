@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
@@ -73,7 +74,7 @@ const REVIEWS: IbReviewInput[] = [
   },
   {
     projectId: 'IBP-001',
-    actorId: 'EMP-011',
+    actorId: 'EMP-004',
     expectedVersion: 3,
     decision: 'approve',
     reason: '',
@@ -119,7 +120,7 @@ export default function S03IbProjectPage({
 }): ReactElement {
   const [service] = useState(() => new IbProjectService(repository));
   const [items, setItems] = useState(() => service.list());
-  const [actorId, setActorId] = useState('EMP-008');
+  const actorId = useCurrentActor('EMP-008');
   const [kind, setKind] = useState<IbWorkpaperKind>('financial');
   const [memberId, setMemberId] = useState('EMP-009');
   const [assetId, setAssetId] = useState('');
@@ -131,7 +132,7 @@ export default function S03IbProjectPage({
   const keys = useRef(new Map<string, string>());
   const projectId = items.some((item) => item.projectId === objectId) ? (objectId ?? '') : (items[0]?.projectId ?? '');
   const current = items.find((item) => item.projectId === projectId);
-  const view = current ? service.read({ projectId, actorId: current.managerId }) : null;
+  const view = current ? service.read({ projectId, actorId }) : null;
   const assets = service.assets(projectId).filter((item) => !item.used);
   const chosenAsset = assets.some((item) => item.assetId === assetId) ? assetId : (assets[0]?.assetId ?? '');
   const openFindings = (view?.findings ?? []).filter((item) => item.status === 'open');
@@ -269,14 +270,8 @@ export default function S03IbProjectPage({
   return (
     <section className={styles.page} aria-label="投行项目办理">
       <div className={styles.grid}>
-        <label htmlFor="s03-actor">当前操作人</label>
-        <select id="s03-actor" value={actorId} onChange={(event) => setActorId(event.target.value)}>
-          {service.actors().map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}（{item.id}）
-            </option>
-          ))}
-        </select>
+
+
         <label htmlFor="s03-kind">底稿类型</label>
         <select id="s03-kind" value={kind} onChange={(event) => setKind(event.target.value as IbWorkpaperKind)}>
           <option value="financial">财务</option>

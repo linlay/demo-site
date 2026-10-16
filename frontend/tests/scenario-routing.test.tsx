@@ -45,7 +45,7 @@ it('only exposes the current page actions after navigation', async () => {
     await act(async () => root.render(<StrictMode><AwcpSettingsContext.Provider value={exposure}><App /></AwcpSettingsContext.Provider></StrictMode>));
     const list = await open('/scenes/O03');
     expect(container.textContent).toContain('已有事项');
-    expect(list.sections).toHaveLength(0);
+    expect(list.sections.map((item) => item.section).sort()).toEqual(['demo.account.read', 'demo.account.switch']);
     const form = await open('/scenes/O03/new/notice');
     expect(form.sections.map((item) => item.section)).toContain('office.notice.draft');
     expect(form.sections.map((item) => item.section)).not.toContain('office.notice.read');

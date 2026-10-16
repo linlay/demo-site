@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -562,6 +563,8 @@ export class IbProjectService {
 }
 
 function createErrors(state: DemoState, input: IbCreateInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const errors = keyErrors(input.idempotencyKey);
   if (!state.employees.some((item) => item.id === input.actorId && item.active && item.roles.includes('ib-manager')))
     errors.push(fieldError(['actorId'], '只有投行项目经理可以创建项目。'));
@@ -589,6 +592,8 @@ function checkRead(state: DemoState, input: IbReadInput): AwcpFieldError[] {
 }
 
 function checkMutation(state: DemoState, operation: Operation, input: IbMutationInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, operation === 'review' ? 'approve' : 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const record = state.idempotencyRecords.find((item) => item.key === input.idempotencyKey);
   if (record)
     return record.operation === `ib.${operation}` && record.fingerprint === mutationFingerprint(operation, input)

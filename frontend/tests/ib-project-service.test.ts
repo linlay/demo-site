@@ -38,7 +38,7 @@ it('moves a complete fixed project through quality, committee and archive once',
     status: 'committee-review',
     businessVersion: 3
   });
-  expect(service.review(review('IBP-001', 3, 's03-committee-approve', 'EMP-011', 'approve'))).toMatchObject({
+  expect(service.review(review('IBP-001', 3, 's03-committee-approve', 'EMP-004', 'approve'))).toMatchObject({
     status: 'approved',
     businessVersion: 4
   });
@@ -132,7 +132,7 @@ it('preserves workpaper and finding history across return, replacement and resub
   service.resolve({ ...mutation('IBP-003', 4, 's03-resolve-return'), findingId, resolution: '新版财务底稿已核对。' });
   expect(service.qualitySubmit(mutation('IBP-003', 5, 's03-resubmit')).businessVersion).toBe(6);
   service.review(review('IBP-003', 6, 's03-quality-again', 'EMP-010', 'approve'));
-  service.review(review('IBP-003', 7, 's03-committee-again', 'EMP-011', 'approve'));
+  service.review(review('IBP-003', 7, 's03-committee-again', 'EMP-004', 'approve'));
   expect(service.archive(mutation('IBP-003', 8, 's03-archive-after-return')).status).toBe('archived');
   const state = repository.snapshot();
   expect(

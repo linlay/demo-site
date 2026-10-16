@@ -23,10 +23,13 @@ type BusinessMutation struct {
 }
 type ApprovalSubmit struct {
 	BusinessMutation
-	RequestID   *string  `json:"requestId"`
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	MaterialIDs []string `json:"materialIds"`
+	TemplateID  string            `json:"templateId,omitempty"`
+	Fields      map[string]string `json:"fields,omitempty"`
+	ReviewerID  string            `json:"reviewerId,omitempty"`
+	RequestID   *string           `json:"requestId"`
+	Title       string            `json:"title"`
+	Description string            `json:"description"`
+	MaterialIDs []string          `json:"materialIds"`
 }
 type BusinessDecision struct {
 	BusinessMutation
@@ -94,17 +97,19 @@ type BusinessHistory struct {
 	Note            string  `json:"note"`
 }
 type Approval struct {
-	ID              string   `json:"id"`
-	ApplicantID     string   `json:"applicantId"`
-	DepartmentID    string   `json:"departmentId"`
-	ReviewerID      string   `json:"reviewerId"`
-	Title           string   `json:"title"`
-	Description     string   `json:"description"`
-	MaterialIDs     []string `json:"materialIds"`
-	Status          string   `json:"status"`
-	BusinessVersion int      `json:"businessVersion"`
-	CurrentTaskID   *string  `json:"currentTaskId"`
-	CreatedAt       string   `json:"createdAt"`
+	TemplateID      string            `json:"templateId"`
+	Fields          map[string]string `json:"fields"`
+	ID              string            `json:"id"`
+	ApplicantID     string            `json:"applicantId"`
+	DepartmentID    string            `json:"departmentId"`
+	ReviewerID      string            `json:"reviewerId"`
+	Title           string            `json:"title"`
+	Description     string            `json:"description"`
+	MaterialIDs     []string          `json:"materialIds"`
+	Status          string            `json:"status"`
+	BusinessVersion int               `json:"businessVersion"`
+	CurrentTaskID   *string           `json:"currentTaskId"`
+	CreatedAt       string            `json:"createdAt"`
 }
 type Form struct {
 	ID              string  `json:"id"`
@@ -245,6 +250,8 @@ type WorkflowTransition struct {
 	Action string `json:"action"`
 }
 type BusinessRecord struct {
+	TemplateID      string             `json:"templateId,omitempty"`
+	Fields          map[string]string  `json:"fields,omitempty"`
 	ID              string             `json:"id"`
 	Kind            string             `json:"kind"`
 	ApplicantID     string             `json:"applicantId"`
@@ -273,6 +280,7 @@ type BusinessRecord struct {
 	Assets          []BusinessAsset    `json:"assets,omitempty"`
 }
 type RecordsPage struct {
+	Templates  []ApprovalTemplate `json:"templates,omitempty"`
 	Kind       string             `json:"kind"`
 	Items      []BusinessRecord   `json:"items"`
 	Total      int                `json:"total"`
@@ -281,4 +289,23 @@ type RecordsPage struct {
 	Generation string             `json:"generation"`
 	Revision   int64              `json:"revision"`
 	Materials  []BusinessMaterial `json:"materials,omitempty"`
+}
+
+type ApprovalField struct {
+	ID      string   `json:"id"`
+	Label   string   `json:"label"`
+	Type    string   `json:"type"`
+	Options []string `json:"options,omitempty"`
+}
+type ApprovalTemplate struct {
+	ID          string          `json:"id"`
+	Name        string          `json:"name"`
+	Category    string          `json:"category"`
+	Description string          `json:"description"`
+	Fields      []ApprovalField `json:"fields"`
+}
+type ApprovalCenterQuery struct {
+	BusinessQuery
+	View       string `json:"view"`
+	TemplateID string `json:"templateId,omitempty"`
 }

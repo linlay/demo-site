@@ -33,7 +33,7 @@ func TestApprovalBusinessLifecycleAndLiveAnalysis(t *testing.T) {
 	ctx := context.Background()
 	q := model.BusinessQuery{ExpectedGeneration: g, ActorID: "EMP-002"}
 	before, err := s.Tasks(ctx, a, q, false)
-	if err != nil || before.Total != 2 {
+	if err != nil || before.Total != 4 {
 		t.Fatalf("tasks: %+v %v", before, err)
 	}
 	in := model.ApprovalSubmit{BusinessMutation: mutation(g, "EMP-001", "submit", 0), Title: "测试申请", Description: "虚构用途说明", MaterialIDs: []string{"APMAT-001"}}
@@ -76,15 +76,15 @@ func TestApprovalBusinessLifecycleAndLiveAnalysis(t *testing.T) {
 		t.Fatal("approval replay")
 	}
 	done, err := s.Tasks(ctx, a, q, true)
-	if err != nil || done.Total != 4 {
+	if err != nil || done.Total != 24 {
 		t.Fatalf("done: %d %v", done.Total, err)
 	}
 	detail, err := s.ApprovalRead(ctx, a, model.BusinessRead{ExpectedGeneration: g, ActorID: "EMP-001", ID: created.ID})
-	if err != nil || len(detail.History) != 4 || len(detail.Tasks) != 2 {
+	if err != nil || len(detail.History) != 4 || len(detail.Tasks) != 3 {
 		t.Fatalf("detail: %+v %v", detail, err)
 	}
 	report, err := s.MCPReport(ctx, *a.Principal, g, model.ReportFilter{DataSource: "business", GroupBy: "status", Page: 1, PageSize: 100})
-	if err != nil || report.Summary.Count != 6 || report.Summary.Approved != 2 {
+	if err != nil || report.Summary.Count != 44 || report.Summary.Approved != 2 {
 		t.Fatalf("live report: %+v %v", report.Summary, err)
 	}
 	denied := *a.Principal
@@ -167,7 +167,7 @@ func TestTravelExpenseValidationCorrectionAndReset(t *testing.T) {
 	_, err = s.ExpenseRead(ctx, a, model.BusinessRead{ExpectedGeneration: reset.Generation, ActorID: "EMP-001", ID: expense.ID})
 	status(t, err, 404)
 	report, err := s.MCPReport(ctx, *a.Principal, reset.Generation, model.ReportFilter{DataSource: "business", GroupBy: "status", Page: 1, PageSize: 100})
-	if err != nil || report.Summary.Count != 5 {
+	if err != nil || report.Summary.Count != 43 {
 		t.Fatalf("reset: %+v %v", report, err)
 	}
 }
@@ -208,9 +208,11 @@ func TestBusinessValidationIsReadOnlyAndDraftContract(t *testing.T) {
 	if err := s.Store.DB.QueryRow(`SELECT (SELECT count(*) FROM approval_requests),(SELECT count(*) FROM business_receipts),(SELECT count(*) FROM workspace_events)`).Scan(&requests, &receipts, &events); err != nil {
 		t.Fatal(err)
 	}
-	if requests != 3 || receipts != 0 || events != 0 {
+	if requests != 41 || receipts != 0 || events != 0 {
 		t.Fatalf("validation mutated state: %d %d %d", requests, receipts, events)
 	}
+	_, err := s.TravelDraftSave(ctx, a, model.TravelDraft{BusinessMutation: mutation(g, "EMP-001", "wrong-applicant", 1), FormID: "FORM-002", ApplicantID: "EMP-002", DepartmentID: "DEP-001"})
+	status(t, err, 400)
 	draft, err := s.TravelDraftSave(ctx, a, model.TravelDraft{BusinessMutation: mutation(g, "EMP-001", "save-draft", 1), FormID: "FORM-002", ApplicantID: "EMP-001", DepartmentID: "DEP-001", AmountCents: 5000, AssetIDs: []string{"AST-004"}})
 	if err != nil || draft.BusinessVersion != 2 {
 		t.Fatal(err)
@@ -275,15 +277,15 @@ func TestPrimitiveRecordSnapshotsAndTaskFilters(t *testing.T) {
 	s, a, g := businessSetup(t)
 	ctx := context.Background()
 	approvals, err := s.Records(ctx, a, model.RecordQuery{BusinessQuery: model.BusinessQuery{ExpectedGeneration: g, ActorID: "EMP-001", PageSize: 1}, Kind: "approval"})
-	if err != nil || approvals.Total != 3 || len(approvals.Items) != 1 || len(approvals.Materials) != 2 {
+	if err != nil || approvals.Total != 26 || len(approvals.Items) != 1 || len(approvals.Materials) != 2 {
 		t.Fatalf("approval options: %+v %v", approvals, err)
 	}
 	travel, err := s.Records(ctx, a, model.RecordQuery{BusinessQuery: model.BusinessQuery{ExpectedGeneration: g, ActorID: "EMP-001"}, Kind: "travel", ID: "FORM-001"})
 	if err != nil || len(travel.Items) != 1 || len(travel.Items[0].Assets) != 3 || len(travel.Items[0].Tasks) != 1 {
 		t.Fatalf("travel detail: %+v %v", travel, err)
 	}
-	_, err = s.Records(ctx, a, model.RecordQuery{BusinessQuery: model.BusinessQuery{ExpectedGeneration: g, ActorID: "EMP-003"}, Kind: "travel", ID: "FORM-001"})
-	status(t, err, 403)
+	_, err = s.Records(ctx, a, model.RecordQuery{BusinessQuery: model.BusinessQuery{ExpectedGeneration: g, ActorID: "EMP-007"}, Kind: "travel", ID: "FORM-001"})
+	status(t, err, 400)
 	readOnly := *a.Principal
 	readOnly.Scopes = []string{"context:read", "business:read"}
 	if _, err = s.QueryTasks(ctx, model.Access{Principal: &readOnly}, model.TaskQuery{ExpectedGeneration: g, ActorID: "EMP-002", Status: "done"}); err != nil {
@@ -296,7 +298,7 @@ func TestPrimitiveRecordSnapshotsAndTaskFilters(t *testing.T) {
 		t.Fatal("task date filter", err)
 	}
 	done, err := s.QueryTasks(ctx, a, model.TaskQuery{ExpectedGeneration: g, ActorID: "EMP-002", Status: "done", Kind: "approval", PageSize: 1})
-	if err != nil || done.Total != 2 || len(done.Items) != 1 {
+	if err != nil || done.Total != 22 || len(done.Items) != 1 {
 		t.Fatal("task pagination", err)
 	}
 	day := time.Date(2090, 1, 1, 16, 0, 0, 0, time.UTC)

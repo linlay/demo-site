@@ -8,6 +8,9 @@ import { useDemoSession } from '../hooks/useDemoSession';
 import { useReportQuery } from '../hooks/useReportQuery';
 import styles from './AnalysisPage.module.css';
 import { AnalysisCharts } from '../components/AnalysisCharts';
+import { useCurrentUser } from '../../app/currentUserContext';
+import { useBrowserPath } from '../routes/useBrowserPath';
+import { PageAccessNotice } from '../components/PageAccessNotice';
 
 const INITIAL: ReportFilter = { dataSource: 'business', from: '', to: '', departmentId: '', scenarioId: '', status: '', groupBy: 'month', page: 1, pageSize: 20 };
 const SCENES: Record<string, string> = { O08: '通用审批', O09: '差旅报销', O11: '采购申请', O12: '合同用印', O15: 'IT 服务' };
@@ -16,6 +19,9 @@ const STATUSES: Record<string, string> = { pending: '待处理', approved: '已�
 export default function AnalysisPage(): ReactElement {
   const { t } = usePreferences();
   const demo = useDemoSession();
+  const identity = useCurrentUser();
+  const { navigate } = useBrowserPath();
+  if (identity?.employees.some((employee) => employee.roles.includes('workflow-analyst')) && !identity.user?.roles.includes('workflow-analyst')) return <PageAccessNotice message={t('周宁负责数据分析，可查看全局统计与业务明细。')} users={identity.employees.filter((employee) => employee.roles.includes('workflow-analyst')).map((employee) => ({ ...employee, responsibilities: ['数据分析', '查看全局统计与业务明细'] }))} navigate={navigate} />;
   return demo ? <AnalysisView api={demo.api} session={demo.session} /> : <p role="alert">{t("请连接演示服务后查看数据分析。")}</p>;
 }
 
@@ -81,7 +87,7 @@ function AnalysisView({ api, session }: { api: DemoApi; session: DemoSession }):
   const max = Math.max(1, ...(result?.groups.map((group) => group.count) ?? []));
 
   return <section className={styles.page} aria-label={t("业务数据分析")}>
-    <header className={styles.heading}><h1>{t('数据分析')}</h1><div className={styles.headingMeta}>
+    <header className={styles.heading}><div className={styles.headingMeta}>
       <span>{t((result?.filter.dataSource ?? draft.dataSource) === 'business' ? '实时办理数据' : '历史演示样本')}</span><span className={styles.dataset}>{(result?.summary.count ?? 0).toLocaleString()} {t('条记录')}</span>
     </div></header>
     <form className={styles.filters} onSubmit={submit}>
@@ -114,7 +120,7 @@ function AnalysisView({ api, session }: { api: DemoApi; session: DemoSession }):
         </button>)}</div>
       </details>
       <section className={styles.panel}><h2>{t("业务明细")}</h2><div className={styles.tableScroll}><table><caption className={styles.srOnly}>{t("当前条件下的业务明细")}</caption><thead><tr><th>{t("事项")}</th><th>{t("部门")}</th><th>{t("状态")}</th><th>{t("金额（元）")}</th><th>{t("日期")}</th><th>{t("耗时（小时）")}</th></tr></thead><tbody>
-        {result.items.map((row) => <tr key={row.id}><td><strong>{result.filter.dataSource === 'business' ? <a href={`/scenes/${row.scenarioId}/objects/${row.id}?actor=${row.ownerId}`}>{row.title}</a> : row.title}</strong><small>{row.id} · {row.ownerId}</small></td><td>{label(row.departmentId)}</td><td>{t(STATUSES[row.status])}{row.overdue ? ` · ${t('逾期')}` : ''}</td><td>{money(row.amountCents)}</td><td>{row.createdOn}</td><td>{row.durationHours ?? '—'}</td></tr>)}
+        {result.items.map((row) => <tr key={row.id}><td><strong>{result.filter.dataSource === 'business' ? <a href={`/scenes/${row.scenarioId}/objects/${row.id}`}>{row.title}</a> : row.title}</strong><small>{row.id} · {row.ownerId}</small></td><td>{label(row.departmentId)}</td><td>{t(STATUSES[row.status])}{row.overdue ? ` · ${t('逾期')}` : ''}</td><td>{money(row.amountCents)}</td><td>{row.createdOn}</td><td>{row.durationHours ?? '—'}</td></tr>)}
         {!result.items.length && <tr><td colSpan={6}>{t("暂无数据")}</td></tr>}
       </tbody></table></div><nav className={styles.pagination} aria-label={t("分析明细分页")}>
         <span>{locale === 'zh-CN' ? `共 ${result.summary.count} 条 · 第 ${result.filter.page} 页` : `${result.summary.count} records · Page ${result.filter.page}`}</span>

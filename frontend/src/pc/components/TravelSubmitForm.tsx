@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useState, type FormEvent, type ReactElement } from 'react';
 
@@ -66,8 +67,8 @@ interface TravelSubmitFormProps {
 }
 
 export function TravelSubmitForm({ service }: TravelSubmitFormProps): ReactElement {
-  const [actorId, setActorId] = useState('');
-  const [travelerIds, setTravelerIds] = useState<string[]>([]);
+  const actorId = useCurrentActor('EMP-001');
+  const [travelerIds, setTravelerIds] = useState<string[]>([actorId]);
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [startLocal, setStartLocal] = useState('');
@@ -124,22 +125,8 @@ export function TravelSubmitForm({ service }: TravelSubmitFormProps): ReactEleme
       <h2 id="travel-title">O09-01 填写出差申请</h2>
       <p>全部数据均为虚构演示；时间按北京时间填写，金额单位为分。</p>
       <form className={styles.form} aria-label="提交出差申请" onSubmit={submit}>
-        <label htmlFor="travel-actor">申请人</label>
-        <select
-          id="travel-actor"
-          value={actorId}
-          onChange={(event) => {
-            setActorId(event.target.value);
-            setTravelerIds([event.target.value]);
-          }}
-        >
-          <option value="">请选择</option>
-          {employees.map((employee) => (
-            <option key={employee.id} value={employee.id}>
-              {employee.name}（{employee.id}）
-            </option>
-          ))}
-        </select>
+
+
         <p>所属部门：{actor?.departmentId ?? '未选择'}</p>
         <fieldset>
           <legend>同行人员（包含申请人）</legend>

@@ -9,7 +9,7 @@ import (
 	"demo-site/backend/internal/model"
 )
 
-const DatasetVersion = "2026-09-30.1"
+const DatasetVersion = "2026-10-16.3"
 const InitialTime = "2026-09-19T01:00:00Z"
 const SessionLifetime = 7 * 24 * time.Hour
 
@@ -42,7 +42,7 @@ func loadAccess(ctx context.Context, tx *sql.Tx, access model.Access, now time.T
 func fillSession(ctx context.Context, tx *sql.Tx, s *model.Session) error {
 	s.Employees = []model.Employee{}
 	s.Departments = []model.Department{}
-	rows, err := tx.QueryContext(ctx, `SELECT id,department_id,name,roles,active FROM employees WHERE session_id=? ORDER BY id`, s.ID)
+	rows, err := tx.QueryContext(ctx, `SELECT id,department_id,name,roles,active FROM employees WHERE session_id=? AND active=1 ORDER BY id`, s.ID)
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (s *Store) ResetFor(ctx context.Context, access model.Access, expected, req
 		return view, model.Failure(409, "session.generation-conflict", "数据已在其他页面重置，请刷新后再操作。")
 	}
 	// Delete children first. All reset work and generation replacement commit together.
-	for _, table := range []string{"business_tasks", "business_history", "business_receipts", "expense_claims", "business_assets", "business_forms", "approval_requests", "approval_materials", "business_initialized", "demo_jobs", "report_entries", "employees", "departments"} {
+	for _, table := range []string{"business_tasks", "business_history", "business_receipts", "expense_claims", "business_assets", "business_forms", "approval_requests", "approval_materials", "business_initialized", "workflow_samples_initialized", "demo_jobs", "report_entries", "employees", "departments"} {
 		if _, err = tx.ExecContext(ctx, `DELETE FROM `+table+` WHERE session_id=?`, view.ID); err != nil {
 			return view, err
 		}

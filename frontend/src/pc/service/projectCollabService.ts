@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -137,6 +138,8 @@ function titleErrors(title: string): AwcpFieldError[] {
     : [fieldError(['title'], '名称须为 1 到 100 字。')];
 }
 function projectErrors(state: DemoState, input: ProjectCreateInput, currentDay: string): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'project.create', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = [...actor(state, input.actorId), ...titleErrors(input.title)];
@@ -186,6 +189,8 @@ function taskFields(
   return errors;
 }
 function createTaskErrors(state: DemoState, input: ProjectTaskCreateInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'task.create', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -215,6 +220,8 @@ function hasCycle(tasks: ProjectTask[]): boolean {
   return tasks.some((item) => visit(item.id));
 }
 function updateTaskErrors(state: DemoState, input: ProjectTaskUpdateInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'task.update', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -243,6 +250,8 @@ function updateTaskErrors(state: DemoState, input: ProjectTaskUpdateInput): Awcp
   return errors;
 }
 function milestoneErrors(state: DemoState, input: MilestoneUpsertInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'milestone.upsert', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);
@@ -276,6 +285,8 @@ function milestoneErrors(state: DemoState, input: MilestoneUpsertInput): AwcpFie
   return errors;
 }
 function reportErrors(state: DemoState, input: WeeklyReportGenerateInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = replay(state, 'weekly-report.generate', input);
   if (key.record || key.errors.length) return key.errors;
   const errors = actor(state, input.actorId);

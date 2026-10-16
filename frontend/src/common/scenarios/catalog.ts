@@ -22,7 +22,7 @@ const definitions: ReadonlyArray<Omit<ScenarioDefinition, 'path'>> = [
   { id: 'O05', title: '日程与会议', group: 'office', technicalFocus: '资源预订 · 冲突校验' },
   { id: 'O06', title: '文档与知识库', group: 'office', technicalFocus: '块编辑 · 版本管理' },
   { id: 'O07', title: '表格与数据处理', group: 'office', technicalFocus: '批量编辑 · 数据校验' },
-  { id: 'O08', title: '通用审批', group: 'office', technicalFocus: '审批流转 · 业务幂等' },
+  { id: 'O08', title: '审批中心', group: 'office', technicalFocus: '审批流转 · 业务幂等' },
   { id: 'O09', title: '差旅与费用', group: 'office', technicalFocus: '主从单据 · 事务一致性' },
   { id: 'O10', title: '人事与考勤', group: 'office', technicalFocus: '动态规则 · 额度校验' },
   { id: 'O11', title: '采购与供应商', group: 'office', technicalFocus: '多对象关联 · 状态流转' },

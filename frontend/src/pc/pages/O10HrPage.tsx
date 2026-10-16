@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -68,7 +69,7 @@ export default function O10HrPage({
   objectId?: string;
 }): ReactElement {
   const [service] = useState(() => new HrService(repository));
-  const [actorId, setActorId] = useState('EMP-001');
+  const actorId = useCurrentActor('EMP-001');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(() => {
     const state = repository.snapshot();
     return state.leaveRequests.find((item) => item.id === objectId)?.employeeId ??
@@ -188,17 +189,8 @@ export default function O10HrPage({
       <div className={styles.panel}>
         <h2>员工档案</h2>
         <div className={styles.grid}>
-          <label htmlFor="o10-actor">当前操作人</label>
-          <select id="o10-actor" value={actorId} onChange={(event) => setActorId(event.target.value)}>
-            {service
-              .actors()
-              .filter((item) => item.active)
-              .map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}（{item.id}）
-                </option>
-              ))}
-          </select>
+
+
           <label htmlFor="o10-employee">员工</label>
           <select
             id="o10-employee"

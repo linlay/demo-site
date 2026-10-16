@@ -1,4 +1,8 @@
 .page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 360px;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
@@ -120,8 +124,14 @@
   max-width: 220px;
 }
 .tableScroll {
-  overflow-x: auto;
+  flex: 1 1 0;
+  min-height: 160px;
+  overflow: auto;
 }
+.page > :not([role='tabpanel']),
+.page > [role='tabpanel'] > :not(.tableScroll) { flex-shrink: 0; }
+.page > [role='tabpanel'] { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.tableScroll thead { position: sticky; top: 0; z-index: 2; }
 .tableScroll table {
   width: 100%;
   min-width: 1080px;

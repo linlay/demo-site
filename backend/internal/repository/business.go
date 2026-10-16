@@ -57,10 +57,17 @@ func (b *BusinessTx) Exec(query string, args ...any) error {
 	return err
 }
 func (b *BusinessTx) Employee(id string) (model.Employee, error) {
+	e, err := b.EmployeeReference(id)
+	if err == nil && !e.Active {
+		return e, model.Invalid("actorId", "操作人不存在或已停用。")
+	}
+	return e, err
+}
+func (b *BusinessTx) EmployeeReference(id string) (model.Employee, error) {
 	var e model.Employee
 	var roles string
 	err := b.Tx.QueryRowContext(b.Context, `SELECT id,department_id,name,roles,active FROM employees WHERE session_id=? AND id=?`, b.Session.ID, id).Scan(&e.ID, &e.DepartmentID, &e.Name, &roles, &e.Active)
-	if err == sql.ErrNoRows || err == nil && !e.Active {
+	if err == sql.ErrNoRows {
 		return e, model.Invalid("actorId", "操作人不存在或已停用。")
 	}
 	if err != nil {
@@ -71,9 +78,9 @@ func (b *BusinessTx) Employee(id string) (model.Employee, error) {
 }
 func (b *BusinessTx) Manager(department, exclude string) (string, error) {
 	var id string
-	err := b.Tx.QueryRowContext(b.Context, `SELECT id FROM employees WHERE session_id=? AND department_id=? AND active=1 AND id<>? AND EXISTS(SELECT 1 FROM json_each(roles) WHERE value='manager') ORDER BY id LIMIT 1`, b.Session.ID, department, exclude).Scan(&id)
+	err := b.Tx.QueryRowContext(b.Context, `SELECT id FROM employees WHERE session_id=? AND active=1 AND id<>? AND EXISTS(SELECT 1 FROM json_each(roles) WHERE value='manager') ORDER BY (department_id=?) DESC,id LIMIT 1`, b.Session.ID, exclude, department).Scan(&id)
 	if err == sql.ErrNoRows {
-		return "", model.Invalid("actorId", "所属部门没有可用审批主管。")
+		return "", model.Invalid("actorId", "没有可用审核人员。")
 	}
 	return id, err
 }
@@ -217,11 +224,15 @@ func (b *BusinessTx) Materials() ([]model.BusinessMaterial, error) {
 }
 func (b *BusinessTx) Approval(id string) (model.Approval, error) {
 	var a model.Approval
-	err := b.Tx.QueryRowContext(b.Context, `SELECT id,applicant_id,department_id,reviewer_id,title,description,status,business_version,current_task_id,created_at FROM approval_requests WHERE session_id=? AND id=?`, b.Session.ID, id).Scan(&a.ID, &a.ApplicantID, &a.DepartmentID, &a.ReviewerID, &a.Title, &a.Description, &a.Status, &a.BusinessVersion, &a.CurrentTaskID, &a.CreatedAt)
+	var fields string
+	err := b.Tx.QueryRowContext(b.Context, `SELECT id,applicant_id,department_id,reviewer_id,title,description,status,business_version,current_task_id,created_at,template_id,fields FROM approval_requests WHERE session_id=? AND id=?`, b.Session.ID, id).Scan(&a.ID, &a.ApplicantID, &a.DepartmentID, &a.ReviewerID, &a.Title, &a.Description, &a.Status, &a.BusinessVersion, &a.CurrentTaskID, &a.CreatedAt, &a.TemplateID, &fields)
 	if err == sql.ErrNoRows {
 		return a, model.Failure(404, "action.approval-not-found", "申请不存在。")
 	}
 	if err != nil {
+		return a, err
+	}
+	if err = json.Unmarshal([]byte(fields), &a.Fields); err != nil {
 		return a, err
 	}
 	a.MaterialIDs = []string{}
@@ -240,7 +251,17 @@ func (b *BusinessTx) Approval(id string) (model.Approval, error) {
 	return a, rows.Err()
 }
 func (b *BusinessTx) SaveApproval(a model.Approval) error {
-	if err := b.Exec(`INSERT INTO approval_requests VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(session_id,id) DO UPDATE SET reviewer_id=excluded.reviewer_id,title=excluded.title,description=excluded.description,status=excluded.status,business_version=excluded.business_version,current_task_id=excluded.current_task_id`, b.Session.ID, a.ID, a.ApplicantID, a.DepartmentID, a.ReviewerID, a.Title, a.Description, a.Status, a.BusinessVersion, a.CurrentTaskID, a.CreatedAt); err != nil {
+	if a.TemplateID == "" {
+		a.TemplateID = "office"
+	}
+	if a.Fields == nil {
+		a.Fields = map[string]string{}
+	}
+	fields, err := json.Marshal(a.Fields)
+	if err != nil {
+		return err
+	}
+	if err := b.Exec(`INSERT INTO approval_requests(session_id,id,applicant_id,department_id,reviewer_id,title,description,status,business_version,current_task_id,created_at,template_id,fields) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(session_id,id) DO UPDATE SET reviewer_id=excluded.reviewer_id,title=excluded.title,description=excluded.description,status=excluded.status,business_version=excluded.business_version,current_task_id=excluded.current_task_id,template_id=excluded.template_id,fields=excluded.fields`, b.Session.ID, a.ID, a.ApplicantID, a.DepartmentID, a.ReviewerID, a.Title, a.Description, a.Status, a.BusinessVersion, a.CurrentTaskID, a.CreatedAt, a.TemplateID, string(fields)); err != nil {
 		return err
 	}
 	if err := b.Exec(`DELETE FROM approval_request_materials WHERE session_id=? AND request_id=?`, b.Session.ID, a.ID); err != nil {
@@ -392,8 +413,8 @@ func (b *BusinessTx) IDs(kind, actor string) ([]string, error) {
 	query := `SELECT id FROM business_forms WHERE session_id=? AND kind=? AND (applicant_id=? OR reviewer_id=?) ORDER BY created_at DESC,id`
 	args := []any{b.Session.ID, kind, actor, actor}
 	if kind == "approval" {
-		query = `SELECT id FROM approval_requests WHERE session_id=? AND (applicant_id=? OR reviewer_id=?) ORDER BY created_at DESC,id`
-		args = []any{b.Session.ID, actor, actor}
+		query = `SELECT id FROM approval_requests a WHERE session_id=? AND (applicant_id=? OR reviewer_id=? OR EXISTS(SELECT 1 FROM approval_decisions d WHERE d.session_id=a.session_id AND d.request_id=a.id AND d.actor_id=? AND d.action IN ('approve','return'))) ORDER BY created_at DESC,id`
+		args = []any{b.Session.ID, actor, actor, actor}
 	}
 	rows, err := b.Tx.QueryContext(b.Context, query, args...)
 	if err != nil {
@@ -414,12 +435,12 @@ func (b *BusinessTx) initialize() error {
 	var initialized int
 	err := b.Tx.QueryRowContext(b.Context, `SELECT 1 FROM business_initialized WHERE session_id=?`, b.Session.ID).Scan(&initialized)
 	if err == nil {
-		return nil
+		return b.seedWorkflowSamples()
 	}
 	if err != sql.ErrNoRows {
 		return err
 	}
-	for _, m := range []model.BusinessMaterial{{ID: "APMAT-001", Name: "虚构采购说明"}, {ID: "APMAT-002", Name: "虚构补正说明"}} {
+	for _, m := range []model.BusinessMaterial{{ID: "APMAT-001", Name: "业务事项说明"}, {ID: "APMAT-002", Name: "补充说明及核查材料"}} {
 		if err = b.Exec(`INSERT INTO approval_materials VALUES(?,?,?)`, b.Session.ID, m.ID, m.Name); err != nil {
 			return err
 		}
@@ -433,7 +454,7 @@ func (b *BusinessTx) initialize() error {
 
 	for n, status := range []string{"submitted", "returned", "approved"} {
 		id := fmt.Sprintf("APPR-%03d", n+1)
-		title := []string{"虚构办公用品申请", "虚构资料补正申请", "虚构已批准申请"}[n]
+		title := []string{"客户服务部办公用品采购", "季度调研资料申请", "华辰科技保密协议用印"}[n]
 		task := fmt.Sprintf("APPTODO-%03d", n+1)
 		var current *string
 		version := 2
@@ -441,7 +462,15 @@ func (b *BusinessTx) initialize() error {
 			current = &task
 			version = 1
 		}
-		a := model.Approval{ID: id, ApplicantID: "EMP-001", DepartmentID: "DEP-001", ReviewerID: "EMP-002", Title: title, Description: "用于演示的申请说明。", MaterialIDs: []string{"APMAT-001"}, Status: status, BusinessVersion: version, CurrentTaskID: current, CreatedAt: at}
+		a := model.Approval{ID: id, ApplicantID: "EMP-001", DepartmentID: "DEP-001", ReviewerID: "EMP-002", Title: title, Description: "请审核本次申请事项及相关材料。", MaterialIDs: []string{"APMAT-001"}, Status: status, BusinessVersion: version, CurrentTaskID: current, CreatedAt: at}
+		if n == 0 {
+			a.TemplateID = "procurement"
+			a.Fields = map[string]string{"itemName": "办公耗材及打印设备", "quantity": "5", "budget": "6800"}
+		}
+		if n == 2 {
+			a.TemplateID = "seal"
+			a.Fields = map[string]string{"contractName": "华辰科技保密协议", "counterparty": "华辰科技股份有限公司", "contractAmount": "10000", "sealType": "合同专用章"}
+		}
 		if err = b.SaveApproval(a); err != nil {
 			return err
 		}
@@ -459,10 +488,10 @@ func (b *BusinessTx) initialize() error {
 			return err
 		}
 		if n > 0 {
-			if err = b.RecordApprovalDecision(id, task, map[bool]string{true: "return", false: "approve"}[n == 1], "EMP-002", "虚构初始办理记录", version); err != nil {
+			if err = b.RecordApprovalDecision(id, task, map[bool]string{true: "return", false: "approve"}[n == 1], "EMP-002", "已核对申请材料，按流程办理。", version); err != nil {
 				return err
 			}
-			if err = b.Audit("approval", id, map[bool]string{true: "return", false: "approve"}[n == 1], "EMP-002", strptr("submitted"), status, version, "虚构初始办理记录"); err != nil {
+			if err = b.Audit("approval", id, map[bool]string{true: "return", false: "approve"}[n == 1], "EMP-002", strptr("submitted"), status, version, "已核对申请材料，按流程办理。"); err != nil {
 				return err
 			}
 		}
@@ -471,19 +500,31 @@ func (b *BusinessTx) initialize() error {
 	if err = b.SaveTravel(t); err != nil {
 		return err
 	}
-	if err = b.Exec(`INSERT INTO business_tasks(session_id,id,title,assignee_id,source_type,source_id,due_at,status) VALUES(?,'TODO-001','审批演示出差申请','EMP-002','travel','FORM-001',?,'open')`, b.Session.ID, at); err != nil {
+	if err = b.Exec(`INSERT INTO business_tasks(session_id,id,title,assignee_id,source_type,source_id,due_at,status) VALUES(?,'TODO-001','北京客户拜访差旅申请','EMP-002','travel','FORM-001',?,'open')`, b.Session.ID, at); err != nil {
 		return err
 	}
 	draft := model.Travel{Form: model.Form{ID: "FORM-002", Kind: "travel", ApplicantID: "EMP-001", DepartmentID: "DEP-001", ReviewerID: "EMP-002", Status: "draft", BusinessVersion: 1, AmountCents: 20000, CreatedAt: at}, TravelerIDs: []string{"EMP-001"}}
 	if err = b.SaveTravel(draft); err != nil {
 		return err
 	}
-	for n, name := range []string{"演示行程说明.txt", "演示交通票据.txt", "演示住宿票据.txt"} {
+	for n, name := range []string{"行程说明.txt", "交通票据.txt", "住宿票据.txt"} {
 		if err = b.Exec(`INSERT INTO business_assets VALUES(?,?,?,?)`, b.Session.ID, fmt.Sprintf("AST-%03d", n+1), t.ID, name); err != nil {
 			return err
 		}
 	}
-	if err = b.Exec(`INSERT INTO business_assets VALUES(?, 'AST-004', NULL, '待关联的演示凭证.txt')`, b.Session.ID); err != nil {
+	if err = b.Exec(`INSERT INTO business_assets VALUES(?, 'AST-004', NULL, '待关联的凭证.txt')`, b.Session.ID); err != nil {
+		return err
+	}
+	if err = b.seedSecuritiesApprovals(at); err != nil {
+		return err
+	}
+	if err = b.seedCorrectionApprovals(at); err != nil {
+		return err
+	}
+	if err = b.seedTwoAccountWorkflow(); err != nil {
+		return err
+	}
+	if err = b.seedWorkflowSamples(); err != nil {
 		return err
 	}
 	return b.Exec(`INSERT INTO business_initialized VALUES(?)`, b.Session.ID)
@@ -529,4 +570,17 @@ func (b *BusinessTx) ApprovalDecisions(id string) ([]model.ApprovalDecision, err
 		out = append(out, d)
 	}
 	return out, rows.Err()
+}
+
+// A returned request belongs to its applicant's work queue until it is resubmitted.
+func (b *BusinessTx) CloseCorrection(id, actor string) error {
+	var task string
+	err := b.Tx.QueryRowContext(b.Context, `SELECT id FROM business_tasks WHERE session_id=? AND source_type='approval' AND source_id=? AND assignee_id=? AND status='open'`, b.Session.ID, id, actor).Scan(&task)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return b.CloseTask("approval", id, task, actor, "resubmit")
 }

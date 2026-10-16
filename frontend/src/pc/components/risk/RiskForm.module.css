@@ -68,9 +68,9 @@
 }
 .flow {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  padding: 18px 22px;
+  padding: 12px 16px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   background: var(--color-bg-surface);
@@ -308,6 +308,13 @@
 .notice button {
   margin-left: 12px;
 }
+.nextStep { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--color-border-default); border-radius: 6px; background: var(--color-bg-surface); }
+.nextStep p { margin: 0; color: var(--color-text-secondary); }
+.people { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.people span { color: var(--color-text-secondary); }
+.people strong { color: var(--color-text-primary); font-weight: 500; }
+.optionalAssign summary { cursor: pointer; color: var(--color-text-secondary); }
+.optionalAssign > div { margin-top: 10px; }
 .errors {
   border: 1px solid var(--color-red-border);
   background: var(--color-red-bg);
@@ -419,8 +426,7 @@
     gap: 20px;
   }
   .flow {
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    gap: 8px;
   }
   .tableToolbar {
     align-items: flex-start;

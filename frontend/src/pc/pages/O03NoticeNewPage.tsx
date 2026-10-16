@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import { useAwcpAction, type AwcpActionRegistration } from '@app/awcp';
 import { useState, type ReactElement } from 'react';
 
@@ -11,7 +12,7 @@ const EXAMPLE: NoticeDraftInput = { actorId: 'EMP-004', title: '客户交流会�
 
 export default function O03NoticeNewPage({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new NoticeService(repository));
-  const [actorId, setActorId] = useState('');
+  const actorId = useCurrentActor('EMP-001');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [message, setMessage] = useState('');
@@ -32,7 +33,7 @@ export default function O03NoticeNewPage({ repository }: { repository: DemoRepos
   }
 
   return <section className={styles.page} aria-label="起草通知表单">
-    <label>起草人 <select value={actorId} onChange={(event) => setActorId(event.target.value)} required><option value="">请选择</option>{service.actors().map((actor) => <option key={actor.id} value={actor.id}>{actor.name}（{actor.id}）</option>)}</select></label>
+
     <label>通知标题 <input value={title} onChange={(event) => setTitle(event.target.value)} required /></label>
     <label>通知正文 <textarea value={body} onChange={(event) => setBody(event.target.value)} required /></label>
     <button type="button" disabled={!actorId || !title.trim() || !body.trim()} onClick={submit}>保存草稿并查看详情</button>

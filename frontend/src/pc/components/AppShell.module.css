@@ -298,6 +298,21 @@
   margin: 0 auto;
 }
 
+.fillShell {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.fillShell .mainWrapper { min-height: 0; }
+.fillShell .header { flex-shrink: 0; }
+.fillShell .mainContent {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
 .userBadge:focus-visible { outline: 2px solid var(--color-gold-primary); outline-offset: 3px; }
 
 .preferences { display: flex; align-items: center; gap: 6px; }
@@ -314,3 +329,21 @@
 .siteNavigation:hover { color: var(--color-blue-hover); }
 .sidebarHeader { flex-shrink: 0; }
 @media (max-width: 760px) { .navItem .navLabel { display: none; } .headerLeft { min-width: 0; } .breadcrumb { flex-wrap: wrap; } }
+
+.accountOption { display: grid; gap: 3px; padding: 3px 0; white-space: normal; }
+.accountOption > span { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.accountOption strong { font-weight: 500; }
+.accountOption small { color: var(--color-text-muted); font-size: 12px; }
+
+.accountControl { margin-left: auto; flex-shrink: 0; }
+@media (max-width: 1150px) {
+  .headerLeft { flex: 1; min-width: 0; }
+  .breadcrumb { flex-wrap: wrap; }
+  .accountControl { order: 1; }
+  .headerRight { order: 2; flex-basis: 100%; justify-content: flex-end; }
+}
+
+.mainContent.mainContent h1 { font-size: 18px; line-height: 1.4; margin: 0; }
+.mainContent.mainContent h2 { font-size: 16px; line-height: 1.45; }
+.mainContent.mainContent h3 { font-size: 14px; line-height: 1.5; }
+@media (max-width: 760px) { .mainContent { padding: 12px 14px 24px; } }

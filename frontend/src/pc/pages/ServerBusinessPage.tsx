@@ -1,3 +1,4 @@
+import { useCurrentActor, useCurrentUser } from '../../app/currentUserContext';
 import { useCallback, useEffect, useId, useRef, useState, type ReactElement } from 'react';
 import type {
   Approval,
@@ -17,6 +18,8 @@ import { BusinessService } from '../service/businessService';
 import { ServerBusinessActions } from '../components/ServerBusinessActions';
 import { ServerBusinessForm } from '../components/ServerBusinessForm';
 import styles from './ServerBusinessPage.module.css';
+import ServerApprovalCenterPage from './ServerApprovalCenterPage';
+import { PageAccessNotice } from '../components/PageAccessNotice';
 
 type Scene = 'O01' | 'O08' | 'O09';
 type Row = Approval | Travel | Expense | BusinessTask;
@@ -45,6 +48,10 @@ export default function ServerBusinessPage({
   navigate(path: string): void;
 }): ReactElement {
   const demo = useDemoSession();
+  const identity = useCurrentUser();
+  if (scene === 'O08' && !objectId && !formType && identity?.user?.roles.includes('workflow-analyst')) return <section><p>周宁负责数据分析，可查看全局统计与业务明细。</p><button type="button" onClick={() => navigate('/analysis')}>打开数据分析</button></section>;
+  if (formType && identity?.employees.some((employee) => employee.roles.includes('workflow-initiator')) && !identity?.user?.roles.includes('workflow-initiator')) return <PageAccessNotice message="请切换到发起与办理账户。" users={identity.employees.filter((employee) => employee.roles.includes('workflow-initiator')).map((employee) => ({ ...employee, responsibilities: ['发起与办理各类业务'] }))} navigate={navigate} />;
+  if (scene === 'O08') return <ServerApprovalCenterPage objectId={objectId} formType={formType} navigate={navigate} />;
   return demo ? (
     <BusinessView
       key={scene}
@@ -77,9 +84,7 @@ function BusinessView({
   const [service] = useState(() => provided); // API lifetime is the workspace lifetime.
   const realtime = useRealtime();
   const observer = useId();
-  const [actorId, setActor] = useState(
-    () => new URLSearchParams(window.location.search).get('actor') ?? (scene === 'O01' ? 'EMP-002' : 'EMP-001')
-  );
+  const actorId = useCurrentActor(scene === 'O01' ? 'EMP-002' : 'EMP-001');
   const actor = demo.session.employees.find((e) => e.id === actorId);
   const [tab, setTab] = useState(scene === 'O09' ? 'travel' : scene === 'O01' ? 'open' : 'approval');
   const [filter, setFilter] = useState('');
@@ -228,36 +233,8 @@ function BusinessView({
   const applicant = item?.applicantId === actorId;
   const reviewer = item?.reviewerId === actorId;
   return (
-    <section className={styles.page}>
+    <section className={styles.page} aria-label={t(scene === 'O01' ? '工作台与待办' : '差旅与费用')}>
       <ServerBusinessActions scene={scene} service={service} refresh={refresh} />
-      <header className={styles.heading}>
-        <div>
-          <h1>{t(scene === 'O01' ? '工作台与待办' : scene === 'O08' ? '通用审批' : '差旅与费用')}</h1>
-          <p>{t('使用虚构数据体验业务办理。')}</p>
-        </div>
-        <label>
-          {t('当前操作人')}
-          <select
-            value={actorId}
-            onChange={(e) => {
-              setActor(e.target.value);
-              setSelected('');
-              setDetail(undefined);
-              setForm(null);
-              setEditing(undefined);
-              setPage(1);
-            }}
-          >
-            {demo.session.employees
-              .filter((e) => e.active)
-              .map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name} · {e.id}
-                </option>
-              ))}
-          </select>
-        </label>
-      </header>
       {summary && (
         <div className={styles.metrics}>
           <article>
@@ -312,9 +289,7 @@ function BusinessView({
             {t('新建申请')}
           </button>
         )}
-        <button type="button" onClick={() => navigate('/analysis')}>
-          {t('数据分析')}
-        </button>
+
       </nav>
       <form
         className={styles.filters}
@@ -419,7 +394,7 @@ function BusinessView({
                     type="button"
                     onClick={() => {
                       if ('sourceId' in row)
-                        navigate(`/scenes/${row.scenarioId}/objects/${row.sourceId}?actor=${actorId}`);
+                        navigate(`/scenes/${row.scenarioId}/objects/${row.sourceId}`);
                       else {
                         setSelected(row.id);
                         setDetail(undefined);

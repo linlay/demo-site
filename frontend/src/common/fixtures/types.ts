@@ -2,6 +2,9 @@ import type { RiskDossier, RiskInvestigationDraft } from '../risk/dossier';
 import type { JsonObject } from '@app/awcp';
 
 export type DemoRole =
+  | 'workflow-initiator'
+  | 'workflow-approver'
+  | 'workflow-analyst'
   | 'employee'
   | 'manager'
   | 'reviewer'
@@ -1273,6 +1276,7 @@ export interface AttachmentJob {
 }
 
 export interface DemoState {
+  workflowProfile?: 'two-account' | 'coarse-roles';
   workbenchSampleVersion?: 1;
   schemaVersion: 24;
   seed: number;

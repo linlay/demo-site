@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -172,6 +173,8 @@ function closeTask(state: DemoState, request: OfficeApprovalRequest, at: string)
 }
 
 function submitErrors(state: DemoState, input: ApprovalSubmitInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = recordErrors(state, 'submit', input);
   if (key.replay || key.errors.length) return key.errors;
   const errors = actorError(state, input.actorId);
@@ -221,6 +224,8 @@ function submitErrors(state: DemoState, input: ApprovalSubmitInput): AwcpFieldEr
 }
 
 function reviewErrors(state: DemoState, input: ApprovalReviewInput, operation: 'approve' | 'return'): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'approve');
+    if (workflowDenied.length) return workflowDenied;
   const key = recordErrors(state, operation, input);
   if (key.replay || key.errors.length) return key.errors;
   const errors = actorError(state, input.actorId);
@@ -246,6 +251,8 @@ function reviewErrors(state: DemoState, input: ApprovalReviewInput, operation: '
 }
 
 function withdrawErrors(state: DemoState, input: ApprovalWithdrawInput): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const key = recordErrors(state, 'withdraw', input);
   if (key.replay || key.errors.length) return key.errors;
   const errors = actorError(state, input.actorId);

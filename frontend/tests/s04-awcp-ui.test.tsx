@@ -114,7 +114,7 @@ it('discovers S04 through Core manual, invokes valid examples and rejects eviden
   }
 });
 
-it('starts S04 handling with empty required inputs', async () => {
+it('keeps unclaimed alerts focused on the next step instead of displaying a disabled form', async () => {
   const repository = new DemoRepository();
   const container = document.createElement('div');
   document.body.append(container);
@@ -123,10 +123,11 @@ it('starts S04 handling with empty required inputs', async () => {
     await act(async () => root.render(element));
     const button = (label: string) => [...container.querySelectorAll('button')].find((item) => item.textContent?.trim() === label);
     expect(button('分派调查')?.disabled).toBe(true);
-    expect(button('登记调查')?.disabled).toBe(true);
-    expect(button('复核调查')?.disabled).toBe(true);
-    expect(button('执行处置')?.disabled).toBe(true);
-    expect((container.querySelector('[aria-label="调查分析"]') as HTMLInputElement).value).toBe('');
+    expect(container.textContent).toContain('刘洋');
+    expect(container.textContent).toContain('周宁');
+    expect(container.textContent).not.toContain('请先由监控员分派调查');
+    expect(container.querySelector('[aria-label="调查分析"]')).toBeNull();
+    expect(button('登记调查')).toBeUndefined();
   } finally {
     await act(async () => root.unmount());
     container.remove();

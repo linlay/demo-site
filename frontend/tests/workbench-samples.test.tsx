@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import Ajv from 'ajv';
 import { createRoot } from 'react-dom/client';
 import { act, Simulate } from 'react-dom/test-utils';
@@ -101,13 +102,14 @@ it('paginates completed work, filters it, and resets the page on an actor change
   const repository = new DemoRepository({ workbenchSamples: true });
   const container = document.createElement('div');
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-002');
   const route = resolveRoute('/');
   try {
     await act(async () =>
       root.render(
-        <AppProviders scopeKey={scopeKeyForRoute(route)} site={siteForRoute(route)}>
+        <identity.Provider><AppProviders scopeKey={scopeKeyForRoute(route)} site={siteForRoute(route)}>
           <O01TodoPage repository={repository} navigate={() => undefined} />
-        </AppProviders>
+        </AppProviders></identity.Provider>
       )
     );
     const done = required(container.querySelector<HTMLButtonElement>('#todo-tab-done'));
@@ -126,11 +128,10 @@ it('paginates completed work, filters it, and resets the page on an actor change
     );
     expect(container.querySelectorAll('tbody tr')).toHaveLength(1);
     expect(container.textContent).toContain('1 / 1');
-    const select = required(container.querySelector('select'));
-    await act(async () =>
-      Simulate.change(select, { target: { value: 'EMP-003' } } as unknown as Parameters<typeof Simulate.change>[1])
-    );
-    expect(container.querySelectorAll('tbody tr')).toHaveLength(0);
+    await identity.switchUser('EMP-003');
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(1);
+    expect(container.textContent).toContain('OTODO-001');
+    expect(container.textContent).not.toContain('APPR-003');
   } finally {
     await act(async () => root.unmount());
   }

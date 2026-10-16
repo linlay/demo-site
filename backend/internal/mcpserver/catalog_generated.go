@@ -16,7 +16,7 @@ var scenarioCatalog = []Scenario{
 	{ID: "O05", Title: "日程与会议", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O06", Title: "文档与知识库", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O07", Title: "表格与数据处理", Group: "office", BackendStatus: "browser-only"},
-	{ID: "O08", Title: "通用审批", Group: "office", BackendStatus: "migrated"},
+	{ID: "O08", Title: "审批中心", Group: "office", BackendStatus: "migrated"},
 	{ID: "O09", Title: "差旅与费用", Group: "office", BackendStatus: "migrated-core"},
 	{ID: "O10", Title: "人事与考勤", Group: "office", BackendStatus: "browser-only"},
 	{ID: "O11", Title: "采购与供应商", Group: "office", BackendStatus: "browser-only"},

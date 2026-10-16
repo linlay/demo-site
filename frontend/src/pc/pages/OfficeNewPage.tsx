@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration, AwcpFieldError, JsonObject } from '@app/awcp';
 import { useState, type ReactElement } from 'react';
 
@@ -91,7 +92,7 @@ const FORMS: Record<FormId, FormSpec> = {
 
 function choices(repository: DemoRepository, scenarioId: FormId, field: string): Array<{ id: string; label: string }> {
   const state = repository.snapshot();
-  const source: Array<{ id: string; name?: string; title?: string }> = field === 'actorId' || field === 'participantIds' || field === 'memberIds' || field === 'driverId' ? state.employees
+  const source: Array<{ id: string; name?: string; title?: string }> = field === 'actorId' || field === 'participantIds' || field === 'memberIds' || field === 'driverId' ? state.employees.filter((employee) => employee.active)
     : field === 'projectId' ? state.ibProjects
     : field === 'resourceId' ? scenarioId === 'O05' ? state.meetingResources : state.adminResources
     : field === 'companyId' ? [state.company]
@@ -103,8 +104,9 @@ function choices(repository: DemoRepository, scenarioId: FormId, field: string):
 }
 
 export default function OfficeNewPage({ repository, scenarioId }: { repository: DemoRepository; scenarioId: FormId }): ReactElement {
+  const actorId = useCurrentActor('EMP-001');
   const spec = FORMS[scenarioId];
-  const [values, setValues] = useState<Record<string, string | string[]>>({});
+  const [values, setValues] = useState<Record<string, string | string[]>>({ actorId });
   const [message, setMessage] = useState('');
   const registration: AwcpActionRegistration<JsonObject> = {
     action: spec.action,
@@ -127,8 +129,8 @@ export default function OfficeNewPage({ repository, scenarioId }: { repository: 
 
   function change(field: string, value: string | string[]): void { setValues((before) => ({ ...before, [field]: value })); }
   return <section className={styles.page} aria-label={spec.title}>
-    <p>请逐项填写业务信息。提交后进入新事项详情；所有选项初始均为空。</p>
-    {spec.fields.map((field) => {
+    <p>请逐项填写业务信息。发起人使用右上角的当前账户，提交后进入新事项详情。</p>
+    {spec.fields.filter((field) => field.key !== 'actorId').map((field) => {
       const options = choices(repository, scenarioId, field.key);
       if (field.kind === 'multi') return <fieldset key={field.key}><legend>{field.label}（必选）</legend>{options.map((option) => <label key={option.id}><input type="checkbox" checked={many(values, field.key).includes(option.id)} onChange={() => change(field.key, many(values, field.key).includes(option.id) ? many(values, field.key).filter((id) => id !== option.id) : [...many(values, field.key), option.id])} /> {option.label}（{option.id}）</label>)}</fieldset>;
       return <label key={field.key}>{field.label}{options.length ? <select value={text(values, field.key)} onChange={(event) => change(field.key, event.target.value)}><option value="">请选择</option>{options.map((option) => <option key={option.id} value={option.id}>{option.label}（{option.id}）</option>)}</select>

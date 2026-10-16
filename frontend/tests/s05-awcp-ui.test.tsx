@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import type { AwcpActionResponse, AwcpManualSection, JsonObject } from '@app/awcp';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
@@ -12,12 +13,14 @@ import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 function mount(repository: DemoRepository, container: HTMLDivElement) {
   const route = resolveRoute('/scenes/S05');
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-001');
   return {
     root,
+    identity,
     element: (
-      <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+      <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
         <S05InstitutionPage repository={repository} />
-      </AppProviders>
+      </AppProviders></identity.Provider>
     )
   };
 }
@@ -129,7 +132,7 @@ it('operates the same S05 service through page controls', async () => {
   const repository = new DemoRepository();
   const container = document.createElement('div');
   document.body.append(container);
-  const { root, element } = mount(repository, container);
+  const { root, element, identity } = mount(repository, container);
   try {
     await act(async () => root.render(element));
     const choose = async (label: string, value: string) => {
@@ -152,22 +155,22 @@ it('operates the same S05 service through page controls', async () => {
       if (!input || !setter) throw new Error(`Missing input ${label}`);
       await act(async () => { setter.call(input, value); input.dispatchEvent(new Event('input', { bubbles: true })); });
     };
-    await choose('操作人', 'EMP-002');
+    await identity.switchUser( 'EMP-002');
     await choose('会议室', 'ROOM-001');
     await fill('路演开始', '2026-09-20T12:00');
     await fill('路演结束', '2026-09-20T13:00');
     await click('预约路演');
     expect(repository.snapshot().roadshows).toHaveLength(1);
-    await choose('操作人', 'EMP-003');
+    await identity.switchUser( 'EMP-003');
     await click('制作资料包');
-    await choose('操作人', 'EMP-002');
+    await identity.switchUser( 'EMP-002');
     await click('模拟邀请');
     expect(repository.snapshot().institutionNeeds[0].status, container.textContent ?? '').toBe('invited');
     await click('推进演示时钟到会议结束');
     await fill('议程', '虚构研究路演交流。');
     await fill('决定', '记录机构后续研究服务需求。');
     await click('登记纪要');
-    await choose('操作人', 'EMP-001');
+    await identity.switchUser( 'EMP-001');
     await fill('回访内容', '虚构机构确认已收到演示资料。');
     await choose('回访结果', 'satisfied');
     await click('登记回访');

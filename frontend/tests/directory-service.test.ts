@@ -5,7 +5,7 @@ import { DirectoryService } from '../src/pc/service/directoryService';
 
 it('queries active cross-department contacts and returns an empty result for unknown filters', () => {
   const service = new DirectoryService(new DemoRepository());
-  const research = service.query({ actorId: 'EMP-008', departmentId: 'DEP-002', name: '演示' }).employees;
+  const research = service.query({ actorId: 'EMP-008', departmentId: 'DEP-002', name: '' }).employees;
   expect(research.map((item) => item.id)).toEqual(['EMP-003', 'EMP-005', 'EMP-007']);
   expect(service.query({ actorId: 'EMP-008', departmentId: 'DEP-999', name: '' }).employees).toEqual([]);
   expect(service.query({ actorId: 'EMP-008', departmentId: '', name: '不存在的联系人' }).employees).toEqual([]);

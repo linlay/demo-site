@@ -44,7 +44,7 @@ func TestIsolationResetReplayAndGenerationFence(t *testing.T) {
 	if a.ID == b.ID || a.Generation == b.Generation || len(tokenA) != 64 {
 		t.Fatal("sessions must be independently random")
 	}
-	if a.RecordCount != 48 || len(a.Employees) != 12 {
+	if a.RecordCount != 48 || len(a.Employees) != 6 {
 		t.Fatal("acceptance profile is not seeded")
 	}
 	before, err := s.Report(ctx, tokenA, a.Generation, defaultFilter(model.ReportFilter{}))

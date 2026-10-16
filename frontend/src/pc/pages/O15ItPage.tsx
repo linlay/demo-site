@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -64,7 +65,7 @@ export default function O15ItPage({
   const [service] = useState(() => new ItService(repository));
   const [, setRevision] = useState(0);
   useEffect(() => service.subscribe(() => setRevision((value) => value + 1)), [service]);
-  const [actorId, setActorId] = useState('EMP-001');
+  const actorId = useCurrentActor('EMP-001');
   const [ticketId, setTicketId] = useState(objectId ?? 'TKT-001');
   const [assigneeId, setAssigneeId] = useState('EMP-006');
   const [resolution, setResolution] = useState('');
@@ -134,18 +135,7 @@ export default function O15ItPage({
   }
   return (
     <main className={styles.page}>
-      <label>
-        操作人{' '}
-        <select aria-label="操作人" value={actorId} onChange={(e) => setActorId(e.target.value)}>
-          {state.employees
-            .filter((item) => item.active)
-            .map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id} {item.name}
-              </option>
-            ))}
-        </select>
-      </label>
+
       <section>
         <h2>IT 工单</h2>
         <label>

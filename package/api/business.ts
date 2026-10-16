@@ -1,4 +1,6 @@
 export type BusinessOperation =
+  | 'approval_center_query'
+  | 'approval_templates_list'
   | 'todo_complete'
   | 'todo_summarize'
   | 'todos_query'
@@ -70,6 +72,8 @@ export interface BusinessDetail<T> {
   revision: number;
 }
 export interface Approval {
+  templateId?: string;
+  fields?: Record<string, string>;
   id: string;
   applicantId: string;
   departmentId: string;
@@ -143,4 +147,16 @@ export interface WorkbenchSummary {
   overdue: number;
   generation: string;
   revision: number;
+}
+
+export interface ApprovalTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  fields: Array<{ id: string; label: string; type: 'text' | 'select' | 'date' | 'number'; options?: string[] }>;
+}
+export interface ApprovalCenterRecord extends Approval {
+  kind: 'approval' | 'travel' | 'expense';
+  amountCents?: number;
 }

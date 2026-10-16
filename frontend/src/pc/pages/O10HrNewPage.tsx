@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import { useAwcpAction, type AwcpActionRegistration } from '@app/awcp';
 import { useState, type ReactElement } from 'react';
 
@@ -10,13 +11,9 @@ import styles from './BusinessScenePage.module.css';
 const LEAVE_EXAMPLE: LeaveSubmitInput = { actorId: 'EMP-001', employeeId: 'EMP-001', startDate: '2026-09-22', endDate: '2026-09-23', reason: '虚构休假安排。', idempotencyKey: 'o10-leave-example' };
 const ATTENDANCE_EXAMPLE: AttendanceCorrectInput = { actorId: 'EMP-001', employeeId: 'EMP-001', date: '2026-09-18', checkIn: '09:00', checkOut: '18:00', reason: '虚构补卡说明。', idempotencyKey: 'o10-attendance-example' };
 
-function EmployeeSelect({ repository, value, onChange }: { repository: DemoRepository; value: string; onChange(value: string): void }): ReactElement {
-  return <label>员工 <select value={value} onChange={(event) => onChange(event.target.value)} required><option value="">请选择</option>{repository.snapshot().employees.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}（{item.id}）</option>)}</select></label>;
-}
-
 function LeaveForm({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new HrService(repository));
-  const [employeeId, setEmployeeId] = useState('');
+  const employeeId = useCurrentActor('EMP-001');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
@@ -28,7 +25,6 @@ function LeaveForm({ repository }: { repository: DemoRepository }): ReactElement
   };
   useAwcpAction(action);
   return <section className={styles.page} aria-label="休假申请表单">
-    <EmployeeSelect repository={repository} value={employeeId} onChange={setEmployeeId} />
     <label>开始日期 <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required /></label>
     <label>结束日期 <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} required /></label>
     <label>休假原因 <input value={reason} onChange={(event) => setReason(event.target.value)} required /></label>
@@ -39,7 +35,7 @@ function LeaveForm({ repository }: { repository: DemoRepository }): ReactElement
 
 function AttendanceForm({ repository }: { repository: DemoRepository }): ReactElement {
   const [service] = useState(() => new HrService(repository));
-  const [employeeId, setEmployeeId] = useState('');
+  const employeeId = useCurrentActor('EMP-001');
   const [date, setDate] = useState('');
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -52,7 +48,6 @@ function AttendanceForm({ repository }: { repository: DemoRepository }): ReactEl
   };
   useAwcpAction(action);
   return <section className={styles.page} aria-label="补卡申请表单">
-    <EmployeeSelect repository={repository} value={employeeId} onChange={setEmployeeId} />
     <label>补卡日期 <input type="date" value={date} onChange={(event) => setDate(event.target.value)} required /></label>
     <label>签到时间 <input type="time" value={checkIn} onChange={(event) => setCheckIn(event.target.value)} required /></label>
     <label>签退时间 <input type="time" value={checkOut} onChange={(event) => setCheckOut(event.target.value)} required /></label>

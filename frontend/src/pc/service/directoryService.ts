@@ -1,3 +1,4 @@
+import { workflowErrors } from './workflowAccess';
 import type { AwcpFieldError, JsonObject } from '@app/awcp';
 
 import { businessError, fieldError } from '../../common/awcp/contracts';
@@ -182,6 +183,8 @@ function readErrors(state: DemoState, scope: Scope, id: string, actorId: string)
 }
 
 function mutationErrors(state: DemoState, scope: Scope, input: Mutation): AwcpFieldError[] {
+    const workflowDenied = workflowErrors(state, input.actorId, 'initiate');
+    if (workflowDenied.length) return workflowDenied;
   const id = objectId(scope, input);
   const record = state.idempotencyRecords.find((item) => item.key === input.idempotencyKey);
   const fingerprint = JSON.stringify([id, input.actorId, input.expectedVersion, input.memberIds]);

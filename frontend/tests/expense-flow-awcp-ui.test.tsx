@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import type { AwcpActionResponse, AwcpManualSection, JsonObject } from '@app/awcp';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
@@ -17,13 +18,14 @@ it('replays the complete expense loop through Core manual, section and invoke', 
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-001');
 
   try {
     await act(async () =>
       root.render(
-        <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+        <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
           <B06WorkspacePage repository={repository} objectId="FORM-003" />
-        </AppProviders>
+        </AppProviders></identity.Provider>
       )
     );
     const api = window.awcp;
@@ -151,41 +153,36 @@ it('uses the same expense workflow service from the page controls', async () => 
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-001');
 
   try {
     await act(async () =>
       root.render(
-        <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+        <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
           <B06WorkspacePage repository={repository} objectId="FORM-003" />
-        </AppProviders>
+        </AppProviders></identity.Provider>
       )
     );
     const panel = container.querySelector<HTMLElement>('section[aria-labelledby="expense-flow-title"]');
     if (!panel) throw new Error('Expense workflow panel is missing.');
     const click = async (label: string) => {
-      const button = [...panel.querySelectorAll('button')].find((item) => item.textContent?.trim() === label);
+      const button = [...container.querySelectorAll('button')].find((item) => item.textContent?.trim() === label);
       if (!button) throw new Error(`Missing button: ${label}`);
       await act(async () => button.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     };
-    const changeActor = async (value: string) => {
-      const select = panel.querySelector<HTMLSelectElement>('#expense-flow-actor');
-      if (!select) throw new Error('Actor selector is missing.');
-      await act(async () => {
-        select.value = value;
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-    };
+    const changeActor = identity.switchUser;
 
     await click('提交 / 重新提交');
     expect(repository.snapshot().forms.find((item) => item.id === 'FORM-003')?.status).toBe('submitted');
     await changeActor('EMP-002');
-    const reason = panel.querySelector<HTMLInputElement>('#expense-flow-reason');
+    const reason = container.querySelector<HTMLInputElement>('#expense-flow-reason');
     const reasonSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
     if (!reason || !reasonSetter) throw new Error('Return reason input is missing.');
     await act(async () => { reasonSetter.call(reason, '请补正票据金额'); reason.dispatchEvent(new Event('input', { bubbles: true })); });
     await click('主管退回');
     expect(repository.snapshot().forms.find((item) => item.id === 'FORM-003')?.status).toBe('returned');
-    const amount = panel.querySelector<HTMLInputElement>('#expense-flow-correction-amount');
+    await changeActor('EMP-001');
+    const amount = container.querySelector<HTMLInputElement>('#expense-flow-correction-amount');
     if (!amount) throw new Error('Correction amount input is missing.');
     await act(async () => {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
@@ -193,7 +190,6 @@ it('uses the same expense workflow service from the page controls', async () => 
       setter.call(amount, '31000');
       amount.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    await changeActor('EMP-001');
     await click('补正并重新校验');
     expect(repository.snapshot().expenseClaims.find((item) => item.formId === 'FORM-003')?.declaredTotalCents).toBe(
       31000
@@ -203,8 +199,8 @@ it('uses the same expense workflow service from the page controls', async () => 
     await click('主管批准');
     await click('查询进度');
     expect(repository.snapshot().forms.find((item) => item.id === 'FORM-003')?.status).toBe('approved');
-    expect(panel.textContent).toContain('FORM-003 · approved · 版本 6');
-    expect(panel.textContent).toContain('expense-correct');
+    expect(container.querySelector('section[aria-labelledby="expense-flow-title"]')?.textContent).toContain('FORM-003 · approved · 版本 6');
+    expect(container.querySelector('section[aria-labelledby="expense-flow-title"]')?.textContent).toContain('expense-correct');
   } finally {
     await act(async () => root.unmount());
     container.remove();

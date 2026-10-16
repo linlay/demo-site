@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -69,7 +70,7 @@ export default function O11ProcurementPage({
   const [service] = useState(() => new ProcurementService(repository));
   const [, setRevision] = useState(0);
   useEffect(() => service.subscribe(() => setRevision((value) => value + 1)), [service]);
-  const [actorId, setActorId] = useState('EMP-001');
+  const actorId = useCurrentActor('EMP-001');
   const [requestId, setRequestId] = useState(objectId ?? 'PREQ-001');
   const [firstSupplierId, setFirstSupplierId] = useState('');
   const [secondSupplierId, setSecondSupplierId] = useState('');
@@ -150,18 +151,7 @@ export default function O11ProcurementPage({
 
   return (
     <main className={styles.page}>
-      <label>
-        操作人{' '}
-        <select id="o11-actor" value={actorId} onChange={(e) => setActorId(e.target.value)}>
-          {state.employees
-            .filter((item) => item.active)
-            .map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id} {item.name}
-              </option>
-            ))}
-        </select>
-      </label>
+
       <section>
         <h2>报价与比价</h2>
         <label>

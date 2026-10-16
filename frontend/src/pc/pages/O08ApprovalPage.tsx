@@ -1,3 +1,4 @@
+import { useCurrentActor } from '../../app/currentUserContext';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -5,10 +6,9 @@ import {
   FileDoneOutlined,
   HistoryOutlined,
   RollbackOutlined,
-  SendOutlined,
-  UserOutlined
+  SendOutlined
 } from '@ant-design/icons';
-import { useAwcpAction } from '@app/awcp';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
@@ -84,10 +84,7 @@ export default function O08ApprovalPage({
   objectId?: string;
 }): ReactElement {
   const [service] = useState(() => new ApprovalService(repository));
-  const [actorId, setActorId] = useState(() => {
-    const requested = new URLSearchParams(window.location.search).get('actor');
-    return requested && service.actors().some((actor) => actor.id === requested) ? requested : 'EMP-001';
-  });
+  const actorId = useCurrentActor('EMP-001');
   const [selected, setSelected] = useState(objectId ?? 'APPR-001');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -229,21 +226,8 @@ export default function O08ApprovalPage({
 
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label htmlFor="o08-actor" className={styles.formLabel}>
-                <UserOutlined /> 当前操作人
-              </label>
-              <select
-                id="o08-actor"
-                className={styles.select}
-                value={actorId}
-                onChange={(event) => setActorId(event.target.value)}
-              >
-                {service.actors().map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}（{item.id}）
-                  </option>
-                ))}
-              </select>
+
+
             </div>
 
             <div className={styles.formGroup}>

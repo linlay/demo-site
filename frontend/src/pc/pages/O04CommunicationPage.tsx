@@ -1,4 +1,5 @@
-import { useAwcpAction } from '@app/awcp';
+import { useCurrentActor } from '../../app/currentUserContext';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
 import type { AwcpActionRegistration } from '@app/awcp';
 import { useEffect, useState, type ReactElement } from 'react';
 
@@ -72,7 +73,7 @@ export default function O04CommunicationPage({
   objectId?: string;
 }): ReactElement {
   const [service] = useState(() => new CommunicationService(repository));
-  const [mailActorId, setMailActorId] = useState(() => repository.snapshot().mailReplies.find((item) => item.id === objectId)?.authorId ?? 'EMP-001');
+  const mailActorId = useCurrentActor(() => repository.snapshot().mailReplies.find((item) => item.id === objectId)?.authorId ?? 'EMP-001');
   const [folder, setFolder] = useState<'inbox' | 'archive'>('inbox');
   const [keyword, setKeyword] = useState('');
   const [selectedMail, setSelectedMail] = useState(() => objectId?.startsWith('MAIL-') ? objectId : repository.snapshot().mailReplies.find((item) => item.id === objectId)?.sourceMailId ?? 'MAIL-001');
@@ -80,7 +81,7 @@ export default function O04CommunicationPage({
   const [replyBody, setReplyBody] = useState('');
   const [replyAttachmentIds, setReplyAttachmentIds] = useState<string[]>([]);
   const [selectedReply, setSelectedReply] = useState('REPLY-001');
-  const [discussionActorId] = useState(() => repository.snapshot().officeDiscussions.find((item) => item.id === objectId)?.creatorId ?? 'EMP-008');
+  const discussionActorId = useCurrentActor(() => repository.snapshot().officeDiscussions.find((item) => item.id === objectId)?.creatorId ?? 'EMP-008');
   const [selectedDiscussion, setSelectedDiscussion] = useState(objectId?.startsWith('DISC-') ? objectId : 'DISC-001');
   const [assigneeId, setAssigneeId] = useState('');
   const [taskTitle, setTaskTitle] = useState('');
@@ -204,14 +205,8 @@ export default function O04CommunicationPage({
       {!discussionDetail && <div className={styles.panel}>
         <h2>模拟邮箱</h2>
         <div className={styles.grid}>
-          <label htmlFor="o04-mail-actor">当前收件人</label>
-          <select id="o04-mail-actor" value={mailActorId} onChange={(event) => setMailActorId(event.target.value)}>
-            {service.actors().map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}（{item.id}）
-              </option>
-            ))}
-          </select>
+
+
           <label htmlFor="o04-folder">分类</label>
           <select
             id="o04-folder"

@@ -1,4 +1,5 @@
-import { useAwcpAction, type AwcpActionRegistration, type JsonObject } from '@app/awcp';
+import { useWorkflowAction as useAwcpAction } from '../../app/useWorkflowAction';
+import { type AwcpActionRegistration, type JsonObject } from '@app/awcp';
 import { completed, describeAction } from '../../common/awcp/contracts';
 import {
   APPROVAL_READ_SCHEMA,

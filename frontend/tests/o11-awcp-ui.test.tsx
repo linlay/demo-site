@@ -1,3 +1,4 @@
+import { createIdentityHarness } from './identityHarness';
 import type { AwcpActionResponse, AwcpManualSection, JsonObject } from '@app/awcp';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
@@ -13,12 +14,14 @@ import { resolveRoute, scopeKeyForRoute } from '../src/pc/routes/route';
 function render(repository: DemoRepository, container: HTMLDivElement) {
   const route = resolveRoute('/scenes/O11');
   const root = createRoot(container);
+  const identity = createIdentityHarness('EMP-001');
   return {
     root,
+    identity,
     element: (
-      <AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
+      <identity.Provider><AppProviders site={siteForRoute(route)} scopeKey={scopeKeyForRoute(route)}>
         <O11ProcurementPage repository={repository} />
-      </AppProviders>
+      </AppProviders></identity.Provider>
     )
   };
 }
@@ -116,7 +119,7 @@ it('shares purchase, comparison, review and receipt records between page control
   const repository = new DemoRepository();
   const container = document.createElement('div');
   document.body.append(container);
-  const { root, element } = render(repository, container);
+  const { root, element, identity } = render(repository, container);
   try {
     await act(async () => root.render(element));
     const click = async (label: string) => {
@@ -151,13 +154,13 @@ it('shares purchase, comparison, review and receipt records between page control
     await input('[aria-label="报价单价2"]', '900');
     await click('完成比价');
     expect(repository.snapshot().purchaseComparisons).toHaveLength(2);
-    await select('#o11-actor', 'EMP-004');
+    await identity.switchUser( 'EMP-004');
     await select('#o11-supplier', 'SUP-003');
     await select('[aria-label="审核决定"]', 'approved');
     await input('[aria-label="审核意见"]', '虚构证明齐全且在有效期内。');
     await click('审核供应商');
     expect(repository.snapshot().supplierReviews).toHaveLength(1);
-    await select('#o11-actor', 'EMP-001');
+    await identity.switchUser( 'EMP-001');
     await input('[aria-label="验收数量"]', '2');
     await click('验收并入库');
     expect(repository.snapshot().inventoryEntries[0]).toMatchObject({
